@@ -118,7 +118,8 @@ barrett_reduce256_modm(bignum256modm r, const bignum256modm q1, const bignum256m
 	c += mul32x32_64(modm_m[0], q3[8]) + mul32x32_64(modm_m[1], q3[7]) + mul32x32_64(modm_m[2], q3[6]) + mul32x32_64(modm_m[3], q3[5]) + mul32x32_64(modm_m[4], q3[4]) + mul32x32_64(modm_m[5], q3[3]) + mul32x32_64(modm_m[6], q3[2]) + mul32x32_64(modm_m[7], q3[1]) + mul32x32_64(modm_m[8], q3[0]);
 	r2[8] = (uint32_t)(c & 0xffffff);
 
-	/* r = r1 - r2 */
+	/* r = r1 - r2
+	   if (r < 0) r += (1 << 264) */
 	pb = 0;
 	pb += r2[0]; b = lt_modm(r1[0], pb); r[0] = (r1[0] - pb + (b << 30)); pb = b;
 	pb += r2[1]; b = lt_modm(r1[1], pb); r[1] = (r1[1] - pb + (b << 30)); pb = b;
@@ -128,10 +129,8 @@ barrett_reduce256_modm(bignum256modm r, const bignum256modm q1, const bignum256m
 	pb += r2[5]; b = lt_modm(r1[5], pb); r[5] = (r1[5] - pb + (b << 30)); pb = b;
 	pb += r2[6]; b = lt_modm(r1[6], pb); r[6] = (r1[6] - pb + (b << 30)); pb = b;
 	pb += r2[7]; b = lt_modm(r1[7], pb); r[7] = (r1[7] - pb + (b << 30)); pb = b;
-	pb += r2[8]; b = lt_modm(r1[8], pb); r[8] = (r1[8] - pb + (b << 16));
+	pb += r2[8]; b = lt_modm(r1[8], pb); r[8] = (r1[8] - pb + (b << 24));
 
-	/* can it really happen that r < 0? See HAC, Alg 14.42, Step 3
-	   see HAC, Alg. 14.42 Step 4, Note 14.44 for two subtractions */
 	reduce256_modm(r);
 	reduce256_modm(r);
 }
