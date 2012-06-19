@@ -8,81 +8,66 @@
 
 typedef uint64_t bignum25519[5];
 
+static const uint64_t reduce_mask_40 = 0x000000ffffffffffull;
+static const uint64_t reduce_mask_51 = 0x0007ffffffffffffull;
+static const uint64_t reduce_mask_56 = 0x00ffffffffffffffull;
 
-/* Sum two numbers: out += in */
+/* out = in */
 static void DONNA_INLINE
-curve25519_add(bignum25519 out, const bignum25519 in) {
-	out[0] += in[0];
-	out[1] += in[1];
-	out[2] += in[2];
-	out[3] += in[3];
-	out[4] += in[4];
+curve25519_copy(bignum25519 out, const bignum25519 in) {
+	out[0] = in[0];
+	out[1] = in[1];
+	out[2] = in[2];
+	out[3] = in[3];
+	out[4] = in[4];
+}
+
+/* out = a + b */
+static void DONNA_INLINE
+curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	out[0] = a[0] + b[0];
+	out[1] = a[1] + b[1];
+	out[2] = a[2] + b[2];
+	out[3] = a[3] + b[3];
+	out[4] = a[4] + b[4];
 }
 
 static void DONNA_INLINE
-curve25519_add_reduce(bignum25519 out, const bignum25519 in) {
+curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
-	out[0] += in[0]    ; c = (out[0] >> 51); out[0] &= 0x7ffffffffffff;
-	out[1] += in[1] + c; c = (out[1] >> 51); out[1] &= 0x7ffffffffffff;
-	out[2] += in[2] + c; c = (out[2] >> 51); out[2] &= 0x7ffffffffffff;
-	out[3] += in[3] + c; c = (out[3] >> 51); out[3] &= 0x7ffffffffffff;
-	out[4] += in[4] + c; c = (out[4] >> 51); out[4] &= 0x7ffffffffffff;
+	out[0] = a[0] + b[0]    ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
+	out[1] = a[1] + b[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
+	out[2] = a[2] + b[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
+	out[3] = a[3] + b[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
+	out[4] = a[4] + b[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
 	out[0] += c * 19;
 }
-
-/* Find the difference of two numbers: out = in - out
- * (note the order of the arguments!)
- */
 
 static const uint64_t two54m152 = (((uint64_t)1) << 54) - 152;
 static const uint64_t two54m8 = (((uint64_t)1) << 54) - 8;
 
-/* out = out - in */
+/* out = a - b */
 static void DONNA_INLINE
-curve25519_subtract(bignum25519 out, const bignum25519 in) {
-	out[0] = out[0] + two54m152 - in[0];
-	out[1] = out[1] + two54m8 - in[1];
-	out[2] = out[2] + two54m8 - in[2];
-	out[3] = out[3] + two54m8 - in[3];
-	out[4] = out[4] + two54m8 - in[4];
+curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	out[0] = a[0] + two54m152 - b[0];
+	out[1] = a[1] + two54m8 - b[1];
+	out[2] = a[2] + two54m8 - b[2];
+	out[3] = a[3] + two54m8 - b[3];
+	out[4] = a[4] + two54m8 - b[4];
 }
 
-#if 0
-/* Find the difference of two numbers: out = in - out
- * (note the order of the arguments!)
- */
 static void DONNA_INLINE
-curve25519_subtract_backwards_reduce(bignum25519 out, const bignum25519 in) {
+curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
-
-	out[0] = in[0] + two54m152 - out[0]    ; c = (out[0] >> 51); out[0] &= 0x7ffffffffffff;
-	out[1] = in[1] +   two54m8 - out[1] + c; c = (out[1] >> 51); out[1] &= 0x7ffffffffffff;
-	out[2] = in[2] +   two54m8 - out[2] + c; c = (out[2] >> 51); out[2] &= 0x7ffffffffffff;
-	out[3] = in[3] +   two54m8 - out[3] + c; c = (out[3] >> 51); out[3] &= 0x7ffffffffffff;
-	out[4] = in[4] +   two54m8 - out[4] + c; c = (out[4] >> 51); out[4] &= 0x7ffffffffffff;
-	out[0] += c * 19;
-}
-#endif
-
-/* out = out - in */
-static void DONNA_INLINE
-curve25519_subtract_reduce(bignum25519 out, const bignum25519 in) {
-	uint64_t c;
-
-	out[0] = out[0] + two54m152 - in[0]    ; c = (out[0] >> 51); out[0] &= 0x7ffffffffffff;
-	out[1] = out[1] +   two54m8 - in[1] + c; c = (out[1] >> 51); out[1] &= 0x7ffffffffffff;
-	out[2] = out[2] +   two54m8 - in[2] + c; c = (out[2] >> 51); out[2] &= 0x7ffffffffffff;
-	out[3] = out[3] +   two54m8 - in[3] + c; c = (out[3] >> 51); out[3] &= 0x7ffffffffffff;
-	out[4] = out[4] +   two54m8 - in[4] + c; c = (out[4] >> 51); out[4] &= 0x7ffffffffffff;
+	out[0] = a[0] + two54m152 - b[0]  ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
+	out[1] = a[1] + two54m8 - b[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
+	out[2] = a[2] + two54m8 - b[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
+	out[3] = a[3] + two54m8 - b[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
+	out[4] = a[4] + two54m8 - b[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
 	out[0] += c * 19;
 }
 
-
-/* Multiply two numbers: out = in2 * in
- *
- * out must be distinct to both inputs. The inputs are reduced coefficient
- * form, the output is not.
- */
+/* out = a * b */
 static void DONNA_INLINE
 curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 #if !defined(HAVE_NATIVE_UINT128)
@@ -151,6 +136,13 @@ curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 	out[4] = r4;
 }
 
+static void
+curve25519_mul_noinline(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
+	curve25519_mul(out, in2, in);
+}
+
+
+/* out = in^(2 * count) */
 static void DONNA_INLINE
 curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 #if !defined(HAVE_NATIVE_UINT128)
@@ -196,6 +188,57 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 		r1 +=   c;      c = r1 >> 51; r1 = r1 & 0x7ffffffffffff;
 		r2 +=   c;
 	} while(--count);
+
+	out[0] = r0;
+	out[1] = r1;
+	out[2] = r2;
+	out[3] = r3;
+	out[4] = r4;
+}
+
+static void
+curve25519_square(bignum25519 out, const bignum25519 in) {
+#if !defined(HAVE_NATIVE_UINT128)
+	uint128_t mul;
+#endif
+	uint128_t t[5];
+	uint64_t r0,r1,r2,r3,r4,c;
+	uint64_t d0,d1,d2,d4,d419;
+
+	r0 = in[0];
+	r1 = in[1];
+	r2 = in[2];
+	r3 = in[3];
+	r4 = in[4];
+
+	d0 = r0 * 2;
+	d1 = r1 * 2;
+	d2 = r2 * 2 * 19;
+	d419 = r4 * 19;
+	d4 = d419 * 2;
+
+#if defined(HAVE_NATIVE_UINT128)
+	t[0] = ((uint128_t) r0) * r0 + ((uint128_t) d4) * r1 + (((uint128_t) d2) * (r3     ));
+	t[1] = ((uint128_t) d0) * r1 + ((uint128_t) d4) * r2 + (((uint128_t) r3) * (r3 * 19));
+	t[2] = ((uint128_t) d0) * r2 + ((uint128_t) r1) * r1 + (((uint128_t) d4) * (r3     ));
+	t[3] = ((uint128_t) d0) * r3 + ((uint128_t) d1) * r2 + (((uint128_t) r4) * (d419   ));
+	t[4] = ((uint128_t) d0) * r4 + ((uint128_t) d1) * r3 + (((uint128_t) r2) * (r2     ));
+#else
+	mul64x64_128(t[0], r0, r0) mul64x64_128(mul, d4, r1) add128(t[0], mul) mul64x64_128(mul, d2,      r3) add128(t[0], mul)
+	mul64x64_128(t[1], d0, r1) mul64x64_128(mul, d4, r2) add128(t[1], mul) mul64x64_128(mul, r3, r3 * 19) add128(t[1], mul)
+	mul64x64_128(t[2], d0, r2) mul64x64_128(mul, r1, r1) add128(t[2], mul) mul64x64_128(mul, d4,      r3) add128(t[2], mul)
+	mul64x64_128(t[3], d0, r3) mul64x64_128(mul, d1, r2) add128(t[3], mul) mul64x64_128(mul, r4,    d419) add128(t[3], mul)
+	mul64x64_128(t[4], d0, r4) mul64x64_128(mul, d1, r3) add128(t[4], mul) mul64x64_128(mul, r2,      r2) add128(t[4], mul)
+#endif
+
+		                    r0 = lo128(t[0]) & reduce_mask_51; shr128(c, t[0], 51);
+	add128_64(t[1], c)   r1 = lo128(t[1]) & reduce_mask_51; shr128(c, t[1], 51);
+	add128_64(t[2], c)   r2 = lo128(t[2]) & reduce_mask_51; shr128(c, t[2], 51);
+	add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
+	add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
+	r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
+	r1 +=   c;      c = r1 >> 51; r1 = r1 & reduce_mask_51;
+	r2 +=   c;
 
 	out[0] = r0;
 	out[1] = r1;
@@ -277,15 +320,7 @@ curve25519_contract(unsigned char *out, const bignum25519 input) {
 	write51(3)
 }
 
-static void DONNA_INLINE
-curve25519_copy(bignum25519 out, const bignum25519 in) {
-	out[0] = in[0];
-	out[1] = in[1];
-	out[2] = in[2];
-	out[3] = in[3];
-	out[4] = in[4];
-}
-
+/* out = (flag) ? in : out */
 static void DONNA_INLINE
 curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint64_t flag) {
 	const uint64_t nb = flag - 1, b = ~nb;
@@ -296,10 +331,7 @@ curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint64_t flag
 	out[4] = (out[4] & nb) | (in[4] & b);
 }
 
-/*
- * Maybe swap the contents of two bignum25519 arrays (@a and @b), each 5 elements
- * long. Perform the swap iff @swap is non-zero.
- */
+/* if (iswap) swap(a, b) */
 static void DONNA_INLINE
 curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint64_t iswap) {
 	const uint64_t swap = (uint64_t)(-(int64_t)iswap);

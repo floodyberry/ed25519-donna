@@ -1,30 +1,4 @@
-/* compiler */
-#if defined(_MSC_VER)
-	#define COMPILER_MSVC
-#endif
-#if defined(__ICC)
-	#define COMPILER_INTEL
-#endif
-#if defined(__GNUC__)
-	#define COMPILER_GCC
-#endif
-#if defined(__PATHCC__)
-	#define COMPILER_PATHCC
-#endif
-
-/* cpu */
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__ ) || defined(_M_X64)
-	#define CPU_X86_64
-#elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86) || defined(__X86__) || defined(_X86_) || defined(__I86__)
-	#define CPU_X86
-#endif
-
-/* 64 bit cpu */
-#if defined(CPU_X86_64) || defined(__ia64__) || defined(_IA64) || defined(__IA64__) || defined(_M_IA64) || \
-	defined(__ia64) || defined(__sparcv9) || defined(__64BIT__) || defined(__LP64__) || defined(_LP64) || (_MIPS_SZLONG==64)
-
-	#define CPU_64BITS
-#endif
+#include "ed25519-donna-portable-identify.h"
 
 #define mul32x32_64(a,b) (((uint64_t)(a))*(b))
 
@@ -37,12 +11,8 @@
 	#endif
 	#undef inline
 	#define inline __forceinline
-	typedef unsigned int uint32_t;
-	typedef unsigned __int64 uint64_t;
-	typedef signed __int64 int64_t;
 	#define MM16 __declspec(align(16))
 #else
-	#include <stdint.h>
 	#include <sys/param.h>
 	#undef inline
 	#define inline __attribute__((always_inline))
@@ -90,7 +60,7 @@
 #endif
 
 /* endian */
-inline uint32_t U8TO32_LE(const unsigned char *p) {
+static inline uint32_t U8TO32_LE(const unsigned char *p) {
 	return
 	(((uint32_t)(p[0])      ) | 
 	 ((uint32_t)(p[1]) <<  8) |
@@ -98,14 +68,14 @@ inline uint32_t U8TO32_LE(const unsigned char *p) {
 	 ((uint32_t)(p[3]) << 24));
 }
 
-inline void U32TO8_LE(unsigned char *p, const uint32_t v) {
+static inline void U32TO8_LE(unsigned char *p, const uint32_t v) {
 	p[0] = (unsigned char)(v      );
 	p[1] = (unsigned char)(v >>  8);
 	p[2] = (unsigned char)(v >> 16);
 	p[3] = (unsigned char)(v >> 24);
 }
 
-inline uint64_t U8TO64_LE(const unsigned char *p) {
+static inline uint64_t U8TO64_LE(const unsigned char *p) {
 	return
 	(((uint64_t)(p[0])      ) |
 	 ((uint64_t)(p[1]) <<  8) |
@@ -117,7 +87,7 @@ inline uint64_t U8TO64_LE(const unsigned char *p) {
 	 ((uint64_t)(p[7]) << 56));
 }
 
-inline void U64TO8_LE(unsigned char *p, const uint64_t v) {
+static inline void U64TO8_LE(unsigned char *p, const uint64_t v) {
 	p[0] = (unsigned char)(v      );
 	p[1] = (unsigned char)(v >>  8);
 	p[2] = (unsigned char)(v >> 16);

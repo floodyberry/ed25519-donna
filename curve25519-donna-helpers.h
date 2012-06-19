@@ -15,19 +15,19 @@ curve25519_pow_two5mtwo0_two250mtwo0(bignum25519 b) {
 
 	/* 2^5  - 2^0 */ /* b */
 	/* 2^10 - 2^5 */ curve25519_square_times(t0, b, 5);
-	/* 2^10 - 2^0 */ curve25519_mul(b, t0, b);
+	/* 2^10 - 2^0 */ curve25519_mul_noinline(b, t0, b);
 	/* 2^20 - 2^10 */ curve25519_square_times(t0, b, 10);
-	/* 2^20 - 2^0 */ curve25519_mul(c, t0, b);
+	/* 2^20 - 2^0 */ curve25519_mul_noinline(c, t0, b);
 	/* 2^40 - 2^20 */ curve25519_square_times(t0, c, 20);
-	/* 2^40 - 2^0 */ curve25519_mul(t0, t0, c);
+	/* 2^40 - 2^0 */ curve25519_mul_noinline(t0, t0, c);
 	/* 2^50 - 2^10 */ curve25519_square_times(t0, t0, 10);
-	/* 2^50 - 2^0 */ curve25519_mul(b, t0, b);
+	/* 2^50 - 2^0 */ curve25519_mul_noinline(b, t0, b);
 	/* 2^100 - 2^50 */ curve25519_square_times(t0, b, 50);
-	/* 2^100 - 2^0 */ curve25519_mul(c, t0, b);
+	/* 2^100 - 2^0 */ curve25519_mul_noinline(c, t0, b);
 	/* 2^200 - 2^100 */ curve25519_square_times(t0, c, 100);
-	/* 2^200 - 2^0 */ curve25519_mul(t0, t0, c);
+	/* 2^200 - 2^0 */ curve25519_mul_noinline(t0, t0, c);
 	/* 2^250 - 2^50 */ curve25519_square_times(t0, t0, 50);
-	/* 2^250 - 2^0 */ curve25519_mul(b, t0, b);
+	/* 2^250 - 2^0 */ curve25519_mul_noinline(b, t0, b);
 }
 
 /*
@@ -39,13 +39,13 @@ curve25519_recip(bignum25519 out, const bignum25519 z) {
 
 	/* 2 */ curve25519_square_times(a, z, 1); /* a = 2 */
 	/* 8 */ curve25519_square_times(t0, a, 2);
-	/* 9 */ curve25519_mul(b, t0, z); /* b = 9 */
-	/* 11 */ curve25519_mul(a, b, a); /* a = 11 */
+	/* 9 */ curve25519_mul_noinline(b, t0, z); /* b = 9 */
+	/* 11 */ curve25519_mul_noinline(a, b, a); /* a = 11 */
 	/* 22 */ curve25519_square_times(t0, a, 1);
-	/* 2^5 - 2^0 = 31 */ curve25519_mul(b, t0, b);
+	/* 2^5 - 2^0 = 31 */ curve25519_mul_noinline(b, t0, b);
 	/* 2^250 - 2^0 */ curve25519_pow_two5mtwo0_two250mtwo0(b);
 	/* 2^255 - 2^5 */ curve25519_square_times(b, b, 5);
-	/* 2^255 - 21 */ curve25519_mul(out, b, a);
+	/* 2^255 - 21 */ curve25519_mul_noinline(out, b, a);
 }
 
 /*
@@ -57,13 +57,13 @@ curve25519_pow_two252m3(bignum25519 two252m3, const bignum25519 z) {
 
 	/* 2 */ curve25519_square_times(c, z, 1); /* c = 2 */
 	/* 8 */ curve25519_square_times(t0, c, 2); /* t0 = 8 */
-	/* 9 */ curve25519_mul(b, t0, z); /* b = 9 */
-	/* 11 */ curve25519_mul(c, b, c); /* c = 11 */
+	/* 9 */ curve25519_mul_noinline(b, t0, z); /* b = 9 */
+	/* 11 */ curve25519_mul_noinline(c, b, c); /* c = 11 */
 	/* 22 */ curve25519_square_times(t0, c, 1);
-	/* 2^5 - 2^0 = 31 */ curve25519_mul(b, t0, b);
+	/* 2^5 - 2^0 = 31 */ curve25519_mul_noinline(b, t0, b);
 	/* 2^250 - 2^0 */ curve25519_pow_two5mtwo0_two250mtwo0(b);
 	/* 2^252 - 2^2 */ curve25519_square_times(b, b, 2);
-	/* 2^252 - 3 */ curve25519_mul(two252m3, b, z);
+	/* 2^252 - 3 */ curve25519_mul_noinline(two252m3, b, z);
 }
 
 /*
@@ -71,6 +71,6 @@ curve25519_pow_two252m3(bignum25519 two252m3, const bignum25519 z) {
  */
 static void DONNA_INLINE
 curve25519_neg(bignum25519 out, const bignum25519 in) {
-	memset(out, 0, sizeof(bignum25519));
-	curve25519_subtract_reduce(out, in);
+	static const bignum25519 zero = {0};
+	curve25519_sub_reduce(out, zero, in);
 }

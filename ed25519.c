@@ -5,7 +5,7 @@
 */
 
 
-#include "ed25519-donna.c"
+#include "ed25519-donna.h"
 #include "ed25519.h"
 #include <openssl/sha.h>
 
@@ -24,7 +24,7 @@ ed25519_extsk(hash_512bits extsk, const ed25519_secret_key sk) {
 void
 ed25519_publickey(const ed25519_secret_key sk, ed25519_public_key pk) {
 	bignum256modm a;
-	ge25519 A;
+	ge25519 MM16 A;
 	hash_512bits extsk;
 	
 	/* A = aB */
@@ -39,7 +39,7 @@ void
 ed25519_sign(const unsigned char *m, size_t mlen, const ed25519_secret_key sk, const ed25519_public_key pk, ed25519_signature RS) {
 	SHA512_CTX shactx;
 	bignum256modm r, S, a;
-	ge25519 R;
+	ge25519 MM16 R;
 	hash_512bits extsk, hashr, hram;
 	
 	ed25519_extsk(extsk, sk);
@@ -76,7 +76,7 @@ ed25519_sign(const unsigned char *m, size_t mlen, const ed25519_secret_key sk, c
 
 int
 ed25519_sign_open(const unsigned char *m, size_t mlen, const ed25519_public_key pk, const ed25519_signature RS) {
-	ge25519 R, A;
+	ge25519 MM16 R, A;
 	SHA512_CTX shactx;
 	hash_512bits hash;
 	bignum256modm hram, S;

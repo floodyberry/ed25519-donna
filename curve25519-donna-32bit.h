@@ -9,7 +9,7 @@ typedef uint32_t bignum25519[10];
 typedef uint32_t bignum25519align16[12];
 
 
-/* Copy a bignum25519 to another: out = in */
+/* out = in */
 static void DONNA_INLINE
 curve25519_copy(bignum25519 out, const bignum25519 in) {
 	out[0] = in[0];
@@ -24,107 +24,85 @@ curve25519_copy(bignum25519 out, const bignum25519 in) {
 	out[9] = in[9];
 }
 
-/* Sum two numbers: out += in */
+/* out = a + b */
 static void DONNA_INLINE
-curve25519_add(bignum25519 out, const bignum25519 in) {
-	out[0] += in[0];
-	out[1] += in[1];
-	out[2] += in[2];
-	out[3] += in[3];
-	out[4] += in[4];
-	out[5] += in[5];
-	out[6] += in[6];
-	out[7] += in[7];
-	out[8] += in[8];
-	out[9] += in[9];
+curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	out[0] = a[0] + b[0];
+	out[1] = a[1] + b[1];
+	out[2] = a[2] + b[2];
+	out[3] = a[3] + b[3];
+	out[4] = a[4] + b[4];
+	out[5] = a[5] + b[5];
+	out[6] = a[6] + b[6];
+	out[7] = a[7] + b[7];
+	out[8] = a[8] + b[8];
+	out[9] = a[9] + b[9];
 }
 
 static void DONNA_INLINE
-curve25519_add_reduce(bignum25519 out, const bignum25519 in) {
+curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint32_t c;
-	out[0] += in[0]    ; c = (out[0] >> 26); out[0] &= 0x3ffffff;
-	out[1] += in[1] + c; c = (out[1] >> 25); out[1] &= 0x1ffffff;
-	out[2] += in[2] + c; c = (out[2] >> 26); out[2] &= 0x3ffffff;
-	out[3] += in[3] + c; c = (out[3] >> 25); out[3] &= 0x1ffffff;
-	out[4] += in[4] + c; c = (out[4] >> 26); out[4] &= 0x3ffffff;
-	out[5] += in[5] + c; c = (out[5] >> 25); out[5] &= 0x1ffffff;
-	out[6] += in[6] + c; c = (out[6] >> 26); out[6] &= 0x3ffffff;
-	out[7] += in[7] + c; c = (out[7] >> 25); out[7] &= 0x1ffffff;
-	out[8] += in[8] + c; c = (out[8] >> 26); out[8] &= 0x3ffffff;
-	out[9] += in[9] + c; c = (out[9] >> 25); out[9] &= 0x1ffffff;
-	out[0] +=    19 * c;
+	out[0] = a[0] + b[0]    ; c = (out[0] >> 26); out[0] &= 0x3ffffff;
+	out[1] = a[1] + b[1] + c; c = (out[1] >> 25); out[1] &= 0x1ffffff;
+	out[2] = a[2] + b[2] + c; c = (out[2] >> 26); out[2] &= 0x3ffffff;
+	out[3] = a[3] + b[3] + c; c = (out[3] >> 25); out[3] &= 0x1ffffff;
+	out[4] = a[4] + b[4] + c; c = (out[4] >> 26); out[4] &= 0x3ffffff;
+	out[5] = a[5] + b[5] + c; c = (out[5] >> 25); out[5] &= 0x1ffffff;
+	out[6] = a[6] + b[6] + c; c = (out[6] >> 26); out[6] &= 0x3ffffff;
+	out[7] = a[7] + b[7] + c; c = (out[7] >> 25); out[7] &= 0x1ffffff;
+	out[8] = a[8] + b[8] + c; c = (out[8] >> 26); out[8] &= 0x3ffffff;
+	out[9] = a[9] + b[9] + c; c = (out[9] >> 25); out[9] &= 0x1ffffff;
+	out[0] += 19 * c;
 }
 
-/* out = out - in */
-#define curve25519_subtract_reduce curve25519_subtract
+/* out = a - b */
+#define curve25519_sub_reduce curve25519_sub
 static void DONNA_INLINE
-curve25519_subtract(bignum25519 out, const bignum25519 in) {
-	uint32_t r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,c;
-
-	r0 = 0x7ffffda + out[0] - in[0];
-	r1 = 0x3fffffe + out[1] - in[1];
-	r2 = 0x7fffffe + out[2] - in[2];
-	r3 = 0x3fffffe + out[3] - in[3];
-	r4 = 0x7fffffe + out[4] - in[4];
-	r5 = 0x3fffffe + out[5] - in[5];
-	r6 = 0x7fffffe + out[6] - in[6];
-	r7 = 0x3fffffe + out[7] - in[7];
-	r8 = 0x7fffffe + out[8] - in[8];
-	r9 = 0x3fffffe + out[9] - in[9];
-
-	         c = (r0 >> 26); r0 &= 0x3ffffff;
-	r1 += c; c = (r1 >> 25); r1 &= 0x1ffffff;
-	r2 += c; c = (r2 >> 26); r2 &= 0x3ffffff;
-	r3 += c; c = (r3 >> 25); r3 &= 0x1ffffff;
-	r4 += c; c = (r4 >> 26); r4 &= 0x3ffffff;
-	r5 += c; c = (r5 >> 25); r5 &= 0x1ffffff;
-	r6 += c; c = (r6 >> 26); r6 &= 0x3ffffff;
-	r7 += c; c = (r7 >> 25); r7 &= 0x1ffffff;
-	r8 += c; c = (r8 >> 26); r8 &= 0x3ffffff;
-	r9 += c; c = (r9 >> 25); r9 &= 0x1ffffff;
-	r0 += 19 * c;
-
-	out[0] = r0;
-	out[1] = r1;
-	out[2] = r2;
-	out[3] = r3;
-	out[4] = r4;
-	out[5] = r5;
-	out[6] = r6;
-	out[7] = r7;
-	out[8] = r8;
-	out[9] = r9;
+curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	uint32_t c;
+	out[0] = 0x7ffffda + a[0] - b[0]    ; c = (out[0] >> 26); out[0] &= 0x3ffffff;
+	out[1] = 0x3fffffe + a[1] - b[1] + c; c = (out[1] >> 25); out[1] &= 0x1ffffff;
+	out[2] = 0x7fffffe + a[2] - b[2] + c; c = (out[2] >> 26); out[2] &= 0x3ffffff;
+	out[3] = 0x3fffffe + a[3] - b[3] + c; c = (out[3] >> 25); out[3] &= 0x1ffffff;
+	out[4] = 0x7fffffe + a[4] - b[4] + c; c = (out[4] >> 26); out[4] &= 0x3ffffff;
+	out[5] = 0x3fffffe + a[5] - b[5] + c; c = (out[5] >> 25); out[5] &= 0x1ffffff;
+	out[6] = 0x7fffffe + a[6] - b[6] + c; c = (out[6] >> 26); out[6] &= 0x3ffffff;
+	out[7] = 0x3fffffe + a[7] - b[7] + c; c = (out[7] >> 25); out[7] &= 0x1ffffff;
+	out[8] = 0x7fffffe + a[8] - b[8] + c; c = (out[8] >> 26); out[8] &= 0x3ffffff;
+	out[9] = 0x3fffffe + a[9] - b[9] + c; c = (out[9] >> 25); out[9] &= 0x1ffffff;
+	out[0] += 19 * c;
 }
 
-/* Multiply two numbers: out = in2 * in */
+/* out = a * b */
+#define curve25519_mul_noinline curve25519_mul
 static void
-curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
+curve25519_mul(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint32_t r0,r1,r2,r3,r4,r5,r6,r7,r8,r9;
 	uint32_t s0,s1,s2,s3,s4,s5,s6,s7,s8,s9;
 	uint64_t m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,c;
 	uint32_t p;
 
-	r0 = in[0];
-	r1 = in[1];
-	r2 = in[2];
-	r3 = in[3];
-	r4 = in[4];
-	r5 = in[5];
-	r6 = in[6];
-	r7 = in[7];
-	r8 = in[8];
-	r9 = in[9];
+	r0 = b[0];
+	r1 = b[1];
+	r2 = b[2];
+	r3 = b[3];
+	r4 = b[4];
+	r5 = b[5];
+	r6 = b[6];
+	r7 = b[7];
+	r8 = b[8];
+	r9 = b[9];
 
-	s0 = in2[0];
-	s1 = in2[1];
-	s2 = in2[2];
-	s3 = in2[3];
-	s4 = in2[4];
-	s5 = in2[5];
-	s6 = in2[6];
-	s7 = in2[7];
-	s8 = in2[8];
-	s9 = in2[9];
+	s0 = a[0];
+	s1 = a[1];
+	s2 = a[2];
+	s3 = a[3];
+	s4 = a[4];
+	s5 = a[5];
+	s6 = a[6];
+	s7 = a[7];
+	s8 = a[8];
+	s9 = a[9];
 
 	m1 = mul32x32_64(r0, s1) + mul32x32_64(r1, s0);
 	m3 = mul32x32_64(r0, s3) + mul32x32_64(r1, s2) + mul32x32_64(r2, s1) + mul32x32_64(r3, s0);
@@ -203,7 +181,82 @@ curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 	out[9] = r9;
 }
 
+/* out = in*in */
+static void
+curve25519_square(bignum25519 out, const bignum25519 in) {
+	uint32_t r0,r1,r2,r3,r4,r5,r6,r7,r8,r9;
+	uint32_t d6,d7,d8,d9;
+	uint64_t m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,c;
+	uint32_t p;
 
+	r0 = in[0];
+	r1 = in[1];
+	r2 = in[2];
+	r3 = in[3];
+	r4 = in[4];
+	r5 = in[5];
+	r6 = in[6];
+	r7 = in[7];
+	r8 = in[8];
+	r9 = in[9];
+
+	m0 = mul32x32_64(r0, r0);
+	r0 *= 2;
+	m1 = mul32x32_64(r0, r1);
+	m2 = mul32x32_64(r0, r2) + mul32x32_64(r1, r1 * 2);
+	r1 *= 2;
+	m3 = mul32x32_64(r0, r3) + mul32x32_64(r1, r2    );
+	m4 = mul32x32_64(r0, r4) + mul32x32_64(r1, r3 * 2) + mul32x32_64(r2, r2);
+	r2 *= 2;
+	m5 = mul32x32_64(r0, r5) + mul32x32_64(r1, r4    ) + mul32x32_64(r2, r3);
+	m6 = mul32x32_64(r0, r6) + mul32x32_64(r1, r5 * 2) + mul32x32_64(r2, r4) + mul32x32_64(r3, r3 * 2);
+	r3 *= 2;
+	m7 = mul32x32_64(r0, r7) + mul32x32_64(r1, r6    ) + mul32x32_64(r2, r5) + mul32x32_64(r3, r4    );
+	m8 = mul32x32_64(r0, r8) + mul32x32_64(r1, r7 * 2) + mul32x32_64(r2, r6) + mul32x32_64(r3, r5 * 2) + mul32x32_64(r4, r4    );
+	m9 = mul32x32_64(r0, r9) + mul32x32_64(r1, r8    ) + mul32x32_64(r2, r7) + mul32x32_64(r3, r6    ) + mul32x32_64(r4, r5 * 2);
+
+	d6 = r6 * 19;
+	d7 = r7 * 2 * 19;
+	d8 = r8 * 19;
+	d9 = r9 * 2 * 19;
+
+	m0 += (mul32x32_64(d9, r1    ) + mul32x32_64(d8, r2    ) + mul32x32_64(d7, r3    ) + mul32x32_64(d6, r4 * 2) + mul32x32_64(r5, r5 * 2 * 19));
+	m1 += (mul32x32_64(d9, r2 / 2) + mul32x32_64(d8, r3    ) + mul32x32_64(d7, r4    ) + mul32x32_64(d6, r5 * 2));
+	m2 += (mul32x32_64(d9, r3    ) + mul32x32_64(d8, r4 * 2) + mul32x32_64(d7, r5 * 2) + mul32x32_64(d6, r6    ));
+	m3 += (mul32x32_64(d9, r4    ) + mul32x32_64(d8, r5 * 2) + mul32x32_64(d7, r6    ));
+	m4 += (mul32x32_64(d9, r5 * 2) + mul32x32_64(d8, r6 * 2) + mul32x32_64(d7, r7    ));
+	m5 += (mul32x32_64(d9, r6    ) + mul32x32_64(d8, r7 * 2));
+	m6 += (mul32x32_64(d9, r7 * 2) + mul32x32_64(d8, r8    ));
+	m7 += (mul32x32_64(d9, r8    ));
+	m8 += (mul32x32_64(d9, r9    ));
+
+									r0 = (uint32_t)m0 & 0x3ffffff; c = (m0 >> 26);
+	m1 += c;                     r1 = (uint32_t)m1 & 0x1ffffff; c = (m1 >> 25);
+	m2 += c;                     r2 = (uint32_t)m2 & 0x3ffffff; c = (m2 >> 26);
+	m3 += c;                     r3 = (uint32_t)m3 & 0x1ffffff; c = (m3 >> 25);
+	m4 += c;                     r4 = (uint32_t)m4 & 0x3ffffff; c = (m4 >> 26);
+	m5 += c;                     r5 = (uint32_t)m5 & 0x1ffffff; c = (m5 >> 25);
+	m6 += c;                     r6 = (uint32_t)m6 & 0x3ffffff; c = (m6 >> 26);
+	m7 += c;                     r7 = (uint32_t)m7 & 0x1ffffff; c = (m7 >> 25);
+	m8 += c;                     r8 = (uint32_t)m8 & 0x3ffffff; c = (m8 >> 26);
+	m9 += c;                     r9 = (uint32_t)m9 & 0x1ffffff; p = (uint32_t)(m9 >> 25);
+	m0 = r0 + mul32x32_64(p,19); r0 = (uint32_t)m0 & 0x3ffffff; p = (uint32_t)(m0 >> 26);
+	r1 += p;
+
+	out[0] = r0;
+	out[1] = r1;
+	out[2] = r2;
+	out[3] = r3;
+	out[4] = r4;
+	out[5] = r5;
+	out[6] = r6;
+	out[7] = r7;
+	out[8] = r8;
+	out[9] = r9;
+}
+
+
+/* out = in ^ (2 * count) */
 static void
 curve25519_square_times(bignum25519 out, const bignum25519 in, int count) {
 	uint32_t r0,r1,r2,r3,r4,r5,r6,r7,r8,r9;
@@ -264,16 +317,7 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, int count) {
 		m8 += c;                     r8 = (uint32_t)m8 & 0x3ffffff; c = (m8 >> 26);
 		m9 += c;                     r9 = (uint32_t)m9 & 0x1ffffff; p = (uint32_t)(m9 >> 25);
 		m0 = r0 + mul32x32_64(p,19); r0 = (uint32_t)m0 & 0x3ffffff; p = (uint32_t)(m0 >> 26);
-		r1 += p;      p = r1 >> 25; r1 &= 0x1ffffff;
-		r2 += p;      p = r2 >> 26; r2 &= 0x3ffffff;
-		r3 += p;      p = r3 >> 25; r3 &= 0x1ffffff;
-		r4 += p;      p = r4 >> 26; r4 &= 0x3ffffff;
-		r5 += p;      p = r5 >> 25; r5 &= 0x1ffffff;
-		r6 += p;      p = r6 >> 26; r6 &= 0x3ffffff;
-		r7 += p;      p = r7 >> 25; r7 &= 0x1ffffff;
-		r8 += p;      p = r8 >> 26; r8 &= 0x3ffffff;
-		r9 += p;      p = r9 >> 25; r9 &= 0x1ffffff;
-		r0 += p * 19;
+		r1 += p;
 	} while (--count);
 
 	out[0] = r0;
@@ -396,6 +440,7 @@ curve25519_contract(unsigned char out[32], const bignum25519 in) {
 }
 
 
+/* out = (flag) ? in : out */
 static void DONNA_INLINE
 curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag) {
 	const uint32_t nb = flag - 1, b = ~nb;
@@ -411,10 +456,7 @@ curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag
 	out[9] = (out[9] & nb) | (in[9] & b);
 }
 
-/*
- * Maybe swap the contents of two bignum25519 arrays (@a and @b), each 5 elements
- * long. Perform the swap iff @swap is non-zero.
- */
+/* if (iswap) swap(a, b) */
 static void DONNA_INLINE
 curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint32_t iswap) {
 	const uint32_t swap = (uint32_t)(-(int32_t)iswap);
