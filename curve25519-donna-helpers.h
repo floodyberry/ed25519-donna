@@ -71,6 +71,6 @@ curve25519_pow_two252m3(bignum25519 two252m3, const bignum25519 z) {
  */
 static void DONNA_INLINE
 curve25519_neg(bignum25519 out, const bignum25519 in) {
-	static const bignum25519 zero = {0};
+	static const bignum25519 MM16 zero = {0};
 	curve25519_sub_reduce(out, zero, in);
 }
