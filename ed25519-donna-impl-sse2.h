@@ -131,40 +131,6 @@ ge25519_pnielsadd_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519_pniels *
 	curve25519_untangle32(r->x, rb[2+(signbit^1)], bdac);
 }
 
-
-static void
-ge25519_p1p1_to_full_pnielsadd_p1p1(ge25519_p1p1 *t, const ge25519_pniels *q, unsigned char signbit) {
-	const bignum25519 *qb = (const bignum25519 *)q;
-	bignum25519 *tb = (bignum25519 *)t;
-	bignum25519 MM16 a,b,c,x,y;
-	packed64bignum25519 MM16 ab, yx, aybx, zt, zt2d, tc, yt, zx;
-	packed32bignum25519 MM16 bd, ac, bdac;
-
-	curve25519_tangle64(zx, t->z, t->x);
-	curve25519_tangle64(yt, t->y, t->t);
-	curve25519_mul_packed64(yx, zx, yt);
-	curve25519_untangle64(y, x, yx);
-	curve25519_swap64(yt);
-	curve25519_mul_packed64(zt, zx, yt);
-	curve25519_tangle64(zt2d, q->z, q->t2d);
-	curve25519_mul_packed64(tc, zt, zt2d);
-	curve25519_untangle64(t->t, c, tc);
-	curve25519_sub(a, y, x);
-	curve25519_add(b, y, x);
-	curve25519_tangle64(ab, a, b);
-	curve25519_tangle64(yx, qb[signbit], qb[signbit^1]);
-	curve25519_mul_packed64(aybx, ab, yx);
-	curve25519_untangle64(a, b, aybx);
-	curve25519_add(t->y, b, a);
-	curve25519_add_reduce(t->t, t->t, t->t);
-	curve25519_copy(t->z, t->t);
-	curve25519_add(tb[2+signbit], tb[2+signbit], c);
-	curve25519_tangle32(bd, b, tb[2+(signbit^1)]);
-	curve25519_tangle32(ac, a, c);
-	curve25519_sub_packed32(bdac, bd, ac);
-	curve25519_untangle32(t->x, tb[2+(signbit^1)], bdac);
-}
-
 static void
 ge25519_double(ge25519 *r, const ge25519 *p) {
 	ge25519_p1p1 MM16 t;
