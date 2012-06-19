@@ -22,6 +22,7 @@
 /* uint128_t */
 #if defined(CPU_64BITS)
 	#if defined(COMPILER_MSVC)
+		#define HAVE_UINT128
 		struct uint128 {
 			uint64_t lo, hi;
 		};
@@ -33,6 +34,7 @@
 		#define add128_64(a,b) { uint64_t p = a.lo; a.lo += b; a.hi += (a.lo < p); }
 		#define lo128(a) (a.lo)
 	#elif (defined(CPU_X86_64) && defined(COMPILER_GCC)) && (defined(COMPILER_INTEL) || defined(COMPILER_PATHCC))
+		#define HAVE_UINT128
 		struct uint128 {
 			uint64_t lo, hi;
 		};
@@ -46,6 +48,7 @@
 
 	#elif defined(COMPILER_GCC)
 		#define HAVE_NATIVE_UINT128
+		#define HAVE_UINT128
 		typedef unsigned uint128_t __attribute__((mode(TI)));
 
 		#define mul64x64_128(out,a,b) out = (uint128_t)a * b;
@@ -55,11 +58,12 @@
 		#define add128_64(a,b) a += b;
 		#define lo128(a) ((uint64_t)a)
 	#else
-		need 128bit define for this compiler
+		/* need 128bit define for this compiler */
 	#endif
 #endif
 
 /* endian */
+#if !defined(HAVE_UINT128)
 static inline uint32_t U8TO32_LE(const unsigned char *p) {
 	return
 	(((uint32_t)(p[0])      ) | 
@@ -74,7 +78,7 @@ static inline void U32TO8_LE(unsigned char *p, const uint32_t v) {
 	p[2] = (unsigned char)(v >> 16);
 	p[3] = (unsigned char)(v >> 24);
 }
-
+#else
 static inline uint64_t U8TO64_LE(const unsigned char *p) {
 	return
 	(((uint64_t)(p[0])      ) |
@@ -97,6 +101,7 @@ static inline void U64TO8_LE(unsigned char *p, const uint64_t v) {
 	p[6] = (unsigned char)(v >> 48);
 	p[7] = (unsigned char)(v >> 56);
 }
+#endif
 
 #define DONNA_INLINE inline
 

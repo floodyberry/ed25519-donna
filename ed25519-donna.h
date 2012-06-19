@@ -13,7 +13,7 @@
 
 #if defined(ED25519_SSE2)
 #include "curve25519-donna-sse2.h"
-#elif defined(CPU_64BITS)
+#elif defined(HAVE_UINT128)
 #include "curve25519-donna-64bit.h"
 #else
 #include "curve25519-donna-32bit.h"
@@ -21,7 +21,7 @@
 
 #include "curve25519-donna-helpers.h"
 
-#if defined(CPU_64BITS) && !defined(ED25519_SSE2)
+#if defined(HAVE_UINT128)
 #include "modm-donna-64bit.h"
 #else
 #include "modm-donna-32bit.h"
@@ -63,7 +63,7 @@ typedef struct ge25519_pniels_t {
 	bignum25519 ysubx, xaddy, z, t2d;
 } ge25519_pniels;
 
-#if defined(ED25519_64BIT_TABLES)
+#if defined(HAVE_UINT128) && !defined(ED25519_SSE2)
 #include "ed25519-donna-64bit-tables.h"
 #else
 #include "ed25519-donna-32bit-tables.h"
