@@ -588,7 +588,7 @@ curve25519_untangle64(bignum25519 x, bignum25519 z, const packedelem64 *in) {
 	_mm_store_si128((xmmi *)(z + 8), _mm_unpackhi_epi32(in[8].v, in[9].v)                                                          );
 }
 
-static void
+static void DONNA_INLINE
 curve25519_mul_packed64(packedelem64 *out, const packedelem64 *r, const packedelem64 *s) {
 	xmmi r1,r2,r3,r4,r5,r6,r7,r8,r9;
 	xmmi r1_2,r3_2,r5_2,r7_2,r9_2;
@@ -643,7 +643,7 @@ curve25519_mul_packed64(packedelem64 *out, const packedelem64 *r, const packedel
 	c1 = _mm_srli_epi64(out[0].v, 26); c2 = _mm_srli_epi64(out[4].v, 26); out[0].v = _mm_and_si128(out[0].v, packedmask26.v); out[4].v = _mm_and_si128(out[4].v, packedmask26.v); out[1].v = _mm_add_epi64(out[1].v, c1); out[5].v = _mm_add_epi64(out[5].v, c2);
 }
 
-static void
+static void DONNA_INLINE
 curve25519_square_packed64(packedelem64 *out, const packedelem64 *r) {
 	xmmi r0,r1,r2,r3;
 	xmmi r1_2,r3_2,r4_2,r5_2,r6_2,r7_2;
