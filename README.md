@@ -6,11 +6,22 @@ developed by [Dan Bernstein](http://cr.yp.to/djb.html),
 [Peter Schwabe](http://www.cryptojedi.org/users/peter/), 
 and [Bo-Yin Yang](http://www.iis.sinica.edu.tw/pages/byyang/).
 
-This project provides performant, portable 32-bit & 64-bit implementations.
+This project provides performant, portable 32-bit & 64-bit implementations. All implementations are 
+of course constant time in regard to secret data.
 
 #### Performance (On an E5200 @ 2.5ghz)
 
-...
+<table>
+<thead><tr><th>Implementation</th><th>Sign Cycles</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify Cycles</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
+<tbody>
+<tr><td>ed25519-donna 32bit</td><td></td><td>603k</td><td>373k</td><td>451k</td><td></td><td>1782k</td><td>1130k</td><td>1374k</td></tr>
+<tr><td>ed25519-donna 64bit</td><td></td><td>132k</td><td>129k</td><td>140k</td><td></td><td>382k</td><td>391k</td><td>413k</td></tr>
+<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>179k</td><td>155k</td><td>184k</td><td></td><td>395k</td><td>378k</td><td>490k</td></tr>
+<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>122k</td><td>114k</td><td>128k</td><td></td><td>372k</td><td>352k</td><td>412k</td></tr>
+</tbody>
+</table>
+
+SSE2 performance may be less impressive on AMD & older CPUs with slower SSE ops!
 
 #### Compilation
 
@@ -27,6 +38,7 @@ No configuration is needed.
 ##### SSE2
 
 	gcc ed25519.c -m32 -O3 -c -DED25519_SSE2
+	gcc ed25519.c -m64 -O3 -c -DED25519_SSE2
 
 clang and icc are also supported
 
