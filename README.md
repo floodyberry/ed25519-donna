@@ -37,7 +37,7 @@ No configuration is needed.
 
 ##### SSE2
 
-	gcc ed25519.c -m32 -O3 -c -DED25519_SSE2
+	gcc ed25519.c -m32 -O3 -c -DED25519_SSE2 -msse2
 	gcc ed25519.c -m64 -O3 -c -DED25519_SSE2
 
 clang and icc are also supported
@@ -45,7 +45,7 @@ clang and icc are also supported
 
 #### Usage
 
-To use the code, link against "**ed25519.o** -lssl" and:
+To use the code, link against "**ed25519.o** -lssl -mbits" and:
 
 	#include "ed25519.h"
 
