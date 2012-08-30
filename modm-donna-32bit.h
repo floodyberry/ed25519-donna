@@ -12,7 +12,11 @@
 	mu = floor( b^(k*2) / m ) = 0xfffffffffffffffffffffffffffffffeb2106215d086329a7ed9ce5a30a2c131b
 */
 
-typedef uint32_t bignum256modm[9];
+#define bignum256modm_bits_per_limb 30
+#define bignum256modm_limb_size 9
+
+typedef uint32_t bignum256modm_element_t;
+typedef bignum256modm_element_t bignum256modm[9];
 
 static const bignum256modm modm_m = {
 	0x1cf5d3ed, 0x20498c69, 0x2f79cd65, 0x37be77a8,
@@ -20,14 +24,14 @@ static const bignum256modm modm_m = {
 	0x00001000
 };
 
-static const uint32_t modm_mu[9] = {
+static const bignum256modm modm_mu = {
 	0x0a2c131b, 0x3673968c, 0x06329a7e, 0x01885742,
 	0x3fffeb21, 0x3fffffff, 0x3fffffff, 0x3fffffff,
 	0x000fffff
 };
 
-static uint32_t
-lt_modm(uint32_t a, uint32_t b) {
+static bignum256modm_element_t
+lt_modm(bignum256modm_element_t a, bignum256modm_element_t b) {
 	return (a - b) >> 31;
 }
 
@@ -35,7 +39,7 @@ lt_modm(uint32_t a, uint32_t b) {
 static void
 reduce256_modm(bignum256modm r) {
 	bignum256modm t;
-	uint32_t b = 0, pb, mask;
+	bignum256modm_element_t b = 0, pb, mask;
 
 	/* t = r - m */
 	pb = 0;
@@ -71,7 +75,7 @@ static void
 barrett_reduce256_modm(bignum256modm r, const bignum256modm q1, const bignum256modm r1) {
 	bignum256modm q3, r2;
 	uint64_t c;
-	uint32_t f, b, pb;
+	bignum256modm_element_t f, b, pb;
 
 	/* q1 = x >> 248 = 264 bits = 9 30 bit elements
 	   q2 = mu * q1
@@ -79,44 +83,44 @@ barrett_reduce256_modm(bignum256modm r, const bignum256modm q1, const bignum256m
 	c  = mul32x32_64(modm_mu[0], q1[7]) + mul32x32_64(modm_mu[1], q1[6]) + mul32x32_64(modm_mu[2], q1[5]) + mul32x32_64(modm_mu[3], q1[4]) + mul32x32_64(modm_mu[4], q1[3]) + mul32x32_64(modm_mu[5], q1[2]) + mul32x32_64(modm_mu[6], q1[1]) + mul32x32_64(modm_mu[7], q1[0]); 
 	c >>= 30;
 	c += mul32x32_64(modm_mu[0], q1[8]) + mul32x32_64(modm_mu[1], q1[7]) + mul32x32_64(modm_mu[2], q1[6]) + mul32x32_64(modm_mu[3], q1[5]) + mul32x32_64(modm_mu[4], q1[4]) + mul32x32_64(modm_mu[5], q1[3]) + mul32x32_64(modm_mu[6], q1[2]) + mul32x32_64(modm_mu[7], q1[1]) + mul32x32_64(modm_mu[8], q1[0]);
-	f = (uint32_t)c; q3[0] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[0] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[1], q1[8]) + mul32x32_64(modm_mu[2], q1[7]) + mul32x32_64(modm_mu[3], q1[6]) + mul32x32_64(modm_mu[4], q1[5]) + mul32x32_64(modm_mu[5], q1[4]) + mul32x32_64(modm_mu[6], q1[3]) + mul32x32_64(modm_mu[7], q1[2]) + mul32x32_64(modm_mu[8], q1[1]);
-	f = (uint32_t)c; q3[0] |= (f << 6) & 0x3fffffff; q3[1] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[0] |= (f << 6) & 0x3fffffff; q3[1] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[2], q1[8]) + mul32x32_64(modm_mu[3], q1[7]) + mul32x32_64(modm_mu[4], q1[6]) + mul32x32_64(modm_mu[5], q1[5]) + mul32x32_64(modm_mu[6], q1[4]) + mul32x32_64(modm_mu[7], q1[3]) + mul32x32_64(modm_mu[8], q1[2]);
-	f = (uint32_t)c; q3[1] |= (f << 6) & 0x3fffffff; q3[2] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[1] |= (f << 6) & 0x3fffffff; q3[2] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[3], q1[8]) + mul32x32_64(modm_mu[4], q1[7]) + mul32x32_64(modm_mu[5], q1[6]) + mul32x32_64(modm_mu[6], q1[5]) + mul32x32_64(modm_mu[7], q1[4]) + mul32x32_64(modm_mu[8], q1[3]);
-	f = (uint32_t)c; q3[2] |= (f << 6) & 0x3fffffff; q3[3] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[2] |= (f << 6) & 0x3fffffff; q3[3] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[4], q1[8]) + mul32x32_64(modm_mu[5], q1[7]) + mul32x32_64(modm_mu[6], q1[6]) + mul32x32_64(modm_mu[7], q1[5]) + mul32x32_64(modm_mu[8], q1[4]);
-	f = (uint32_t)c; q3[3] |= (f << 6) & 0x3fffffff; q3[4] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[3] |= (f << 6) & 0x3fffffff; q3[4] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[5], q1[8]) + mul32x32_64(modm_mu[6], q1[7]) + mul32x32_64(modm_mu[7], q1[6]) + mul32x32_64(modm_mu[8], q1[5]);
-	f = (uint32_t)c; q3[4] |= (f << 6) & 0x3fffffff; q3[5] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[4] |= (f << 6) & 0x3fffffff; q3[5] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[6], q1[8]) + mul32x32_64(modm_mu[7], q1[7]) + mul32x32_64(modm_mu[8], q1[6]);
-	f = (uint32_t)c; q3[5] |= (f << 6) & 0x3fffffff; q3[6] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[5] |= (f << 6) & 0x3fffffff; q3[6] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[7], q1[8]) + mul32x32_64(modm_mu[8], q1[7]);
-	f = (uint32_t)c; q3[6] |= (f << 6) & 0x3fffffff; q3[7] = (f >> 24) & 0x3f; c >>= 30;
+	f = (bignum256modm_element_t)c; q3[6] |= (f << 6) & 0x3fffffff; q3[7] = (f >> 24) & 0x3f; c >>= 30;
 	c += mul32x32_64(modm_mu[8], q1[8]);
-	f = (uint32_t)c; q3[7] |= (f << 6) & 0x3fffffff; q3[8] = (uint32_t)(c >> 24);
+	f = (bignum256modm_element_t)c; q3[7] |= (f << 6) & 0x3fffffff; q3[8] = (bignum256modm_element_t)(c >> 24);
 
 	/* r1 = (x mod 256^(32+1)) = x mod (2^8)(31+1) = x & ((1 << 264) - 1)
 	   r2 = (q3 * m) mod (256^(32+1)) = (q3 * m) & ((1 << 264) - 1) */
 	c = mul32x32_64(modm_m[0], q3[0]);
-	r2[0] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[0] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[1]) + mul32x32_64(modm_m[1], q3[0]);
-	r2[1] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[1] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[2]) + mul32x32_64(modm_m[1], q3[1]) + mul32x32_64(modm_m[2], q3[0]);
-	r2[2] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[2] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[3]) + mul32x32_64(modm_m[1], q3[2]) + mul32x32_64(modm_m[2], q3[1]) + mul32x32_64(modm_m[3], q3[0]);
-	r2[3] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[3] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[4]) + mul32x32_64(modm_m[1], q3[3]) + mul32x32_64(modm_m[2], q3[2]) + mul32x32_64(modm_m[3], q3[1]) + mul32x32_64(modm_m[4], q3[0]);
-	r2[4] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[4] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[5]) + mul32x32_64(modm_m[1], q3[4]) + mul32x32_64(modm_m[2], q3[3]) + mul32x32_64(modm_m[3], q3[2]) + mul32x32_64(modm_m[4], q3[1]) + mul32x32_64(modm_m[5], q3[0]);
-	r2[5] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[5] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[6]) + mul32x32_64(modm_m[1], q3[5]) + mul32x32_64(modm_m[2], q3[4]) + mul32x32_64(modm_m[3], q3[3]) + mul32x32_64(modm_m[4], q3[2]) + mul32x32_64(modm_m[5], q3[1]) + mul32x32_64(modm_m[6], q3[0]);
-	r2[6] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[6] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[7]) + mul32x32_64(modm_m[1], q3[6]) + mul32x32_64(modm_m[2], q3[5]) + mul32x32_64(modm_m[3], q3[4]) + mul32x32_64(modm_m[4], q3[3]) + mul32x32_64(modm_m[5], q3[2]) + mul32x32_64(modm_m[6], q3[1]) + mul32x32_64(modm_m[7], q3[0]);
-	r2[7] = (uint32_t)(c & 0x3fffffff); c >>= 30;
+	r2[7] = (bignum256modm_element_t)(c & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(modm_m[0], q3[8]) + mul32x32_64(modm_m[1], q3[7]) + mul32x32_64(modm_m[2], q3[6]) + mul32x32_64(modm_m[3], q3[5]) + mul32x32_64(modm_m[4], q3[4]) + mul32x32_64(modm_m[5], q3[3]) + mul32x32_64(modm_m[6], q3[2]) + mul32x32_64(modm_m[7], q3[1]) + mul32x32_64(modm_m[8], q3[0]);
-	r2[8] = (uint32_t)(c & 0xffffff);
+	r2[8] = (bignum256modm_element_t)(c & 0xffffff);
 
 	/* r = r1 - r2
 	   if (r < 0) r += (1 << 264) */
@@ -138,7 +142,7 @@ barrett_reduce256_modm(bignum256modm r, const bignum256modm q1, const bignum256m
 /* addition modulo m */
 static void
 add256_modm(bignum256modm r, const bignum256modm x, const bignum256modm y) {
-	uint32_t c;
+	bignum256modm_element_t c;
 
 	c  = x[0] + y[0]; r[0] = c & 0x3fffffff; c >>= 30;
 	c += x[1] + y[1]; r[1] = c & 0x3fffffff; c >>= 30;
@@ -158,53 +162,53 @@ static void
 mul256_modm(bignum256modm r, const bignum256modm x, const bignum256modm y) {
 	bignum256modm r1, q1;
 	uint64_t c;
-	uint32_t f;
+	bignum256modm_element_t f;
 
 	/* r1 = (x mod 256^(32+1)) = x mod (2^8)(31+1) = x & ((1 << 264) - 1)
 	   q1 = x >> 248 = 264 bits = 9 30 bit elements */
 	c = mul32x32_64(x[0], y[0]);
-	f = (uint32_t)c; r1[0] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[0] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[1]) + mul32x32_64(x[1], y[0]);
-	f = (uint32_t)c; r1[1] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[1] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[2]) + mul32x32_64(x[1], y[1]) + mul32x32_64(x[2], y[0]);
-	f = (uint32_t)c; r1[2] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[2] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[3]) + mul32x32_64(x[1], y[2]) + mul32x32_64(x[2], y[1]) + mul32x32_64(x[3], y[0]);
-	f = (uint32_t)c; r1[3] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[3] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[4]) + mul32x32_64(x[1], y[3]) + mul32x32_64(x[2], y[2]) + mul32x32_64(x[3], y[1]) + mul32x32_64(x[4], y[0]);
-	f = (uint32_t)c; r1[4] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[4] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[5]) + mul32x32_64(x[1], y[4]) + mul32x32_64(x[2], y[3]) + mul32x32_64(x[3], y[2]) + mul32x32_64(x[4], y[1]) + mul32x32_64(x[5], y[0]);
-	f = (uint32_t)c; r1[5] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[5] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[6]) + mul32x32_64(x[1], y[5]) + mul32x32_64(x[2], y[4]) + mul32x32_64(x[3], y[3]) + mul32x32_64(x[4], y[2]) + mul32x32_64(x[5], y[1]) + mul32x32_64(x[6], y[0]);
-	f = (uint32_t)c; r1[6] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[6] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[7]) + mul32x32_64(x[1], y[6]) + mul32x32_64(x[2], y[5]) + mul32x32_64(x[3], y[4]) + mul32x32_64(x[4], y[3]) + mul32x32_64(x[5], y[2]) + mul32x32_64(x[6], y[1]) + mul32x32_64(x[7], y[0]);
-	f = (uint32_t)c; r1[7] = (f & 0x3fffffff); c >>= 30;
+	f = (bignum256modm_element_t)c; r1[7] = (f & 0x3fffffff); c >>= 30;
 	c += mul32x32_64(x[0], y[8]) + mul32x32_64(x[1], y[7]) + mul32x32_64(x[2], y[6]) + mul32x32_64(x[3], y[5]) + mul32x32_64(x[4], y[4]) + mul32x32_64(x[5], y[3]) + mul32x32_64(x[6], y[2]) + mul32x32_64(x[7], y[1]) + mul32x32_64(x[8], y[0]);
-	f = (uint32_t)c; r1[8] = (f & 0x00ffffff); q1[0] = (f >> 8) & 0x3fffff; c >>= 30;
+	f = (bignum256modm_element_t)c; r1[8] = (f & 0x00ffffff); q1[0] = (f >> 8) & 0x3fffff; c >>= 30;
 	c += mul32x32_64(x[1], y[8]) + mul32x32_64(x[2], y[7]) + mul32x32_64(x[3], y[6]) + mul32x32_64(x[4], y[5]) + mul32x32_64(x[5], y[4]) + mul32x32_64(x[6], y[3]) + mul32x32_64(x[7], y[2]) + mul32x32_64(x[8], y[1]);
-	f = (uint32_t)c; q1[0] = (q1[0] | (f << 22)) & 0x3fffffff; q1[1] = (f >> 8) & 0x3fffff; c >>= 30;	
+	f = (bignum256modm_element_t)c; q1[0] = (q1[0] | (f << 22)) & 0x3fffffff; q1[1] = (f >> 8) & 0x3fffff; c >>= 30;	
 	c += mul32x32_64(x[2], y[8]) + mul32x32_64(x[3], y[7]) + mul32x32_64(x[4], y[6]) + mul32x32_64(x[5], y[5]) + mul32x32_64(x[6], y[4]) + mul32x32_64(x[7], y[3]) + mul32x32_64(x[8], y[2]);
-	f = (uint32_t)c; q1[1] = (q1[1] | (f << 22)) & 0x3fffffff; q1[2] = (f >> 8) & 0x3fffff; c >>= 30;	
+	f = (bignum256modm_element_t)c; q1[1] = (q1[1] | (f << 22)) & 0x3fffffff; q1[2] = (f >> 8) & 0x3fffff; c >>= 30;	
 	c += mul32x32_64(x[3], y[8]) + mul32x32_64(x[4], y[7]) + mul32x32_64(x[5], y[6]) + mul32x32_64(x[6], y[5]) + mul32x32_64(x[7], y[4]) + mul32x32_64(x[8], y[3]);
-	f = (uint32_t)c; q1[2] = (q1[2] | (f << 22)) & 0x3fffffff; q1[3] = (f >> 8) & 0x3fffff; c >>= 30;	
+	f = (bignum256modm_element_t)c; q1[2] = (q1[2] | (f << 22)) & 0x3fffffff; q1[3] = (f >> 8) & 0x3fffff; c >>= 30;	
 	c += mul32x32_64(x[4], y[8]) + mul32x32_64(x[5], y[7]) + mul32x32_64(x[6], y[6]) + mul32x32_64(x[7], y[5]) + mul32x32_64(x[8], y[4]);
-	f = (uint32_t)c; q1[3] = (q1[3] | (f << 22)) & 0x3fffffff; q1[4] = (f >> 8) & 0x3fffff; c >>= 30;	
+	f = (bignum256modm_element_t)c; q1[3] = (q1[3] | (f << 22)) & 0x3fffffff; q1[4] = (f >> 8) & 0x3fffff; c >>= 30;	
 	c += mul32x32_64(x[5], y[8]) + mul32x32_64(x[6], y[7]) + mul32x32_64(x[7], y[6]) + mul32x32_64(x[8], y[5]);
-	f = (uint32_t)c; q1[4] = (q1[4] | (f << 22)) & 0x3fffffff; q1[5] = (f >> 8) & 0x3fffff; c >>= 30;
+	f = (bignum256modm_element_t)c; q1[4] = (q1[4] | (f << 22)) & 0x3fffffff; q1[5] = (f >> 8) & 0x3fffff; c >>= 30;
 	c += mul32x32_64(x[6], y[8]) + mul32x32_64(x[7], y[7]) + mul32x32_64(x[8], y[6]);
-	f = (uint32_t)c; q1[5] = (q1[5] | (f << 22)) & 0x3fffffff; q1[6] = (f >> 8) & 0x3fffff; c >>= 30;
+	f = (bignum256modm_element_t)c; q1[5] = (q1[5] | (f << 22)) & 0x3fffffff; q1[6] = (f >> 8) & 0x3fffff; c >>= 30;
 	c += mul32x32_64(x[7], y[8]) + mul32x32_64(x[8], y[7]);
-	f = (uint32_t)c; q1[6] = (q1[6] | (f << 22)) & 0x3fffffff; q1[7] = (f >> 8) & 0x3fffff; c >>= 30;
+	f = (bignum256modm_element_t)c; q1[6] = (q1[6] | (f << 22)) & 0x3fffffff; q1[7] = (f >> 8) & 0x3fffff; c >>= 30;
 	c += mul32x32_64(x[8], y[8]);
-	f = (uint32_t)c; q1[7] = (q1[7] | (f << 22)) & 0x3fffffff; q1[8] = (f >> 8) & 0x3fffff;
+	f = (bignum256modm_element_t)c; q1[7] = (q1[7] | (f << 22)) & 0x3fffffff; q1[8] = (f >> 8) & 0x3fffff;
 
 	barrett_reduce256_modm(r, q1, r1);
 }
 
 static void
-expand256_modm(bignum256modm out, const unsigned char *in, uint32_t len) {
+expand256_modm(bignum256modm out, const unsigned char *in, size_t len) {
 	unsigned char work[64] = {0};
-	uint32_t x[16];
-	bignum256modm q1, r1;
+	bignum256modm_element_t x[16];
+	bignum256modm q1;
 
 	memcpy(work, in, len);
 	x[0] = U8TO32_LE(work +  0);
@@ -225,15 +229,19 @@ expand256_modm(bignum256modm out, const unsigned char *in, uint32_t len) {
 	x[15] = U8TO32_LE(work + 60);
 
 	/* r1 = (x mod 256^(32+1)) = x mod (2^8)(31+1) = x & ((1 << 264) - 1) */
-	r1[0] = (                         x[0]) & 0x3fffffff;
-	r1[1] = ((x[ 0] >> 30) | (x[ 1] <<  2)) & 0x3fffffff;
-	r1[2] = ((x[ 1] >> 28) | (x[ 2] <<  4)) & 0x3fffffff;
-	r1[3] = ((x[ 2] >> 26) | (x[ 3] <<  6)) & 0x3fffffff;
-	r1[4] = ((x[ 3] >> 24) | (x[ 4] <<  8)) & 0x3fffffff;
-	r1[5] = ((x[ 4] >> 22) | (x[ 5] << 10)) & 0x3fffffff;
-	r1[6] = ((x[ 5] >> 20) | (x[ 6] << 12)) & 0x3fffffff;
-	r1[7] = ((x[ 6] >> 18) | (x[ 7] << 14)) & 0x3fffffff;
-	r1[8] = ((x[ 7] >> 16) | (x[ 8] << 16)) & 0x00ffffff;
+	out[0] = (                         x[0]) & 0x3fffffff;
+	out[1] = ((x[ 0] >> 30) | (x[ 1] <<  2)) & 0x3fffffff;
+	out[2] = ((x[ 1] >> 28) | (x[ 2] <<  4)) & 0x3fffffff;
+	out[3] = ((x[ 2] >> 26) | (x[ 3] <<  6)) & 0x3fffffff;
+	out[4] = ((x[ 3] >> 24) | (x[ 4] <<  8)) & 0x3fffffff;
+	out[5] = ((x[ 4] >> 22) | (x[ 5] << 10)) & 0x3fffffff;
+	out[6] = ((x[ 5] >> 20) | (x[ 6] << 12)) & 0x3fffffff;
+	out[7] = ((x[ 6] >> 18) | (x[ 7] << 14)) & 0x3fffffff;
+	out[8] = ((x[ 7] >> 16) | (x[ 8] << 16)) & 0x00ffffff;
+
+	/* 8*31 = 248 bits, no need to reduce */
+	if (len < 32)
+		return;
 
 	/* q1 = x >> 248 = 264 bits = 9 30 bit elements */
 	q1[0] = ((x[ 7] >> 24) | (x[ 8] <<  8)) & 0x3fffffff;
@@ -246,7 +254,7 @@ expand256_modm(bignum256modm out, const unsigned char *in, uint32_t len) {
 	q1[7] = ((x[14] >> 10) | (x[15] << 22)) & 0x3fffffff;
 	q1[8] = ((x[15] >>  8)                );	
 
-	barrett_reduce256_modm(out, q1, r1);
+	barrett_reduce256_modm(out, q1, out);
 }
 
 static void
@@ -267,7 +275,7 @@ static void
 contract256_window4_modm(signed char r[64], const bignum256modm in) {
 	char carry;
 	signed char *quads = r;
-	uint32_t i, j, v;
+	bignum256modm_element_t i, j, v;
 
 	for (i = 0; i < 8; i += 2) {
 		v = in[i];
@@ -304,7 +312,7 @@ contract256_slidingwindow_modm(signed char r[256], const bignum256modm s, int wi
 	int i,j,k,b;
 	int m = (1 << (windowsize - 1)) - 1, soplen = 256;
 	signed char *bits = r;
-	uint32_t v;
+	bignum256modm_element_t v;
 
 	/* first put the binary expansion into r  */
 	for (i = 0; i < 8; i++) {
@@ -339,4 +347,88 @@ contract256_slidingwindow_modm(signed char r[256], const bignum256modm s, int wi
 			}
 		}
 	}
+}
+
+
+/*
+	helpers for batch verifcation, are allowed to be vartime
+*/
+
+/* out = a - b, a must be larger than b */
+static void
+sub256_modm_batch(bignum256modm out, const bignum256modm a, const bignum256modm b, size_t limbsize) {
+	size_t i = 0;
+	bignum256modm_element_t carry = 0;
+	switch (limbsize) {
+		case 8: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 7: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 6: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 5: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 4: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 3: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 2: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 1: out[i] = (a[i] - b[i]) - carry; carry = (out[i] >> 31); out[i] &= 0x3fffffff; i++;
+		case 0: 
+		default: out[i] = (a[i] - b[i]) - carry;
+	}
+}
+
+
+/* is a < b */
+static int
+lt256_modm_batch(const bignum256modm a, const bignum256modm b, size_t limbsize) {
+	size_t i = 0;
+	bignum256modm_element_t t, carry = 0;
+	switch (limbsize) {
+		case 8: t = (a[i] - b[i])        ; carry = (t >> 31); i++;
+		case 7: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 6: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 5: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 4: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 3: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 2: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 1: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
+		case 0: t = (a[i] - b[i]) - carry; carry = (t >> 31);
+	}
+	return (int)carry;
+}
+
+/* is a <= b */
+static int
+lte256_modm_batch(const bignum256modm a, const bignum256modm b, size_t limbsize) {
+	size_t i = 0;
+	bignum256modm_element_t t, carry = 0;
+	switch (limbsize) {
+		case 8: t = (b[i] - a[i])        ; carry = (t >> 31); i++;
+		case 7: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 6: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 5: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 4: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 3: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 2: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 1: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
+		case 0: t = (b[i] - a[i]) - carry; carry = (t >> 31);
+	}
+	return (int)!carry;
+}
+
+
+/* is a == 0 */
+static int
+iszero256_modm_batch(const bignum256modm a) {
+	size_t i;
+	for (i = 0; i < 9; i++)
+		if (a[i])
+			return 0;
+	return 1;
+}
+
+/* is a == 1 */
+static int
+isone256_modm_batch(const bignum256modm a) {
+	size_t i;
+	for (i = 0; i < 9; i++)
+		if (a[i] != ((i) ? 0 : 1))
+			return 0;
+	return 1;
 }
