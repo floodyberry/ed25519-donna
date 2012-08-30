@@ -11,13 +11,15 @@ of course constant time in regard to secret data.
 
 #### Performance (On an E5200 @ 2.5ghz)
 
+Batch verfication time is the average time per 1 verification in a batch of 64 signatures.
+
 <table>
-<thead><tr><th>Implementation</th><th>Sign Cycles</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify Cycles</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
+<thead><tr><th>Implementation</th><th>Sign Cycles</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify Cycles (Batch)</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
 <tbody>
-<tr><td>ed25519-donna 32bit</td><td></td><td>603k</td><td>373k</td><td>451k</td><td></td><td>1782k</td><td>1130k</td><td>1374k</td></tr>
-<tr><td>ed25519-donna 64bit</td><td></td><td>132k</td><td>129k</td><td>140k</td><td></td><td>382k</td><td>391k</td><td>413k</td></tr>
-<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>179k</td><td>155k</td><td>184k</td><td></td><td>395k</td><td>378k</td><td>490k</td></tr>
-<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>122k</td><td>114k</td><td>128k</td><td></td><td>372k</td><td>352k</td><td>412k</td></tr>
+<tr><td>ed25519-donna 32bit</td><td></td><td>603k</td><td>373k</td><td>451k</td><td></td><td>1755k (755k)</td><td>1118k (488k)</td><td>1352k (566k)</td></tr>
+<tr><td>ed25519-donna 64bit</td><td></td><td>132k</td><td>129k</td><td>140k</td><td></td><td>374k (160k)</td><td>386k (170k)</td><td>408k (167k)</td></tr>
+<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>179k</td><td>155k</td><td>184k</td><td></td><td>395k (204k)</td><td>378k (197k)</td><td>490k (234k)</td></tr>
+<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>122k</td><td>114k</td><td>128k</td><td></td><td>372k (172k)</td><td>352k (173k)</td><td>412k (195k)</td></tr>
 </tbody>
 </table>
 
@@ -68,6 +70,17 @@ To sign a message:
 To verify a signature:
 
 	int valid = ed25519_sign_open(message, message_len, pk, signature) == 0;
+
+To batch verify signatures:
+
+	const unsigned char *mp[num] = {message1, message2..}
+	size_t ml[num] = {message_len1, message_len2..}
+	const unsigned char *pkp[num] = {pk1, pk2..}
+	const unsigned char *sigp[num] = {signature1, signature2..}
+	int valid[num]
+
+	/* valid[i] will be set to 1 if the individual signature was valid, 0 otherwise */
+	int all_valid = ed25519_sign_open_batch(mp, ml, pkp, sigp, num, valid) == 0;
 
 Unlike the [SUPERCOP](http://bench.cr.yp.to/supercop.html) version, signatures are
 not appended to messages, and there is no need for padding in front of messages. 
