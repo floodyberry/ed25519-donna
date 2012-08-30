@@ -30,6 +30,27 @@ ge25519_full_to_pniels(ge25519_pniels *p, const ge25519 *r) {
 */
 
 static void
+ge25519_add_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519 *q) {
+	bignum25519 MM16 a,b,c,d,t,u;
+
+	curve25519_sub(a, p->y, p->x);
+	curve25519_add(b, p->y, p->x);
+	curve25519_sub(t, q->y, q->x);
+	curve25519_add(u, q->y, q->x);
+	curve25519_mul(a, a, t);
+	curve25519_mul(b, b, u);
+	curve25519_mul(c, p->t, q->t);
+	curve25519_mul(c, c, ge25519_ec2d);
+	curve25519_mul(d, p->z, q->z);
+	curve25519_add_reduce(d, d, d);
+	curve25519_sub(r->x, b, a);
+	curve25519_add(r->y, b, a);
+	curve25519_add(r->z, d, c);
+	curve25519_sub(r->t, d, c);
+}
+
+
+static void
 ge25519_double_p1p1(ge25519_p1p1 *r, const ge25519 *p) {
 	bignum25519 MM16 a,b,c;
 
@@ -95,6 +116,13 @@ static void
 ge25519_double(ge25519 *r, const ge25519 *p) {
 	ge25519_p1p1 MM16 t;
 	ge25519_double_p1p1(&t, p);
+	ge25519_p1p1_to_full(r, &t);
+}
+
+static void
+ge25519_add(ge25519 *r, const ge25519 *p,  const ge25519 *q) {
+	ge25519_p1p1 MM16 t;
+	ge25519_add_p1p1(&t, p, q);
 	ge25519_p1p1_to_full(r, &t);
 }
 
@@ -215,7 +243,7 @@ ge25519_unpack_negative_vartime(ge25519 *r, const unsigned char p[32]) {
 	scalarmults
 */
 
-#define S1_SWINDOWSIZE 6
+#define S1_SWINDOWSIZE 5
 #define S1_TABLE_SIZE (1<<(S1_SWINDOWSIZE-2))
 #define S2_SWINDOWSIZE 7
 #define S2_TABLE_SIZE (1<<(S2_SWINDOWSIZE-2))
@@ -305,7 +333,7 @@ ge25519_scalarmult_base_niels(ge25519 *r, const bignum256modm s) {
 	ge25519_niels MM16 t;
 
 	contract256_window4_modm(b, s);
-	
+
 	ge25519_scalarmult_base_choose_niels(&t, 0, b[1]);
 	curve25519_sub_reduce(r->x, t.xaddy, t.ysubx);
 	curve25519_add_reduce(r->y, t.xaddy, t.ysubx);

@@ -54,6 +54,34 @@ ge25519_full_to_pniels(ge25519_pniels *p, const ge25519 *r) {
 */
 
 static void
+ge25519_add_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519 *q) {
+	bignum25519 MM16 a,b,c,d;
+	packed32bignum25519 MM16 xx, yy, yypxx, yymxx, bd, ac, bdmac, bdpac;
+	packed64bignum25519 MM16 at, bu, atbu, ptz, qtz, cd;
+
+	curve25519_tangle32(yy, p->y, q->y);
+	curve25519_tangle32(xx, p->x, q->x);
+	curve25519_add_packed32(yypxx, yy, xx);
+	curve25519_sub_packed32(yymxx, yy, xx);
+	curve25519_tangle64_from32(at, bu, yymxx, yypxx);
+	curve25519_mul_packed64(atbu, at, bu);
+	curve25519_untangle64(a, b, atbu);
+	curve25519_tangle64(ptz, p->t, p->z);
+	curve25519_tangle64(qtz, q->t, q->z);
+	curve25519_mul_packed64(cd, ptz, qtz);
+	curve25519_untangle64(c, d, cd);
+	curve25519_mul(c, c, ge25519_ec2d);
+	curve25519_add_reduce(d, d, d);
+	curve25519_tangle32(bd, b, d);
+	curve25519_tangle32(ac, a, c);
+	curve25519_sub_packed32(bdmac, bd, ac);
+	curve25519_add_packed32(bdpac, bd, ac);
+	curve25519_untangle32(r->x, r->t, bdmac);
+	curve25519_untangle32(r->y, r->z, bdpac);
+}
+
+
+static void
 ge25519_double_p1p1(ge25519_p1p1 *r, const ge25519 *p) {
 	bignum25519 MM16 a,b,c,x;
 	packed64bignum25519 MM16 xy, zx, ab, cx;
@@ -84,7 +112,6 @@ ge25519_nielsadd2_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519_niels *q
 	bignum25519 MM16 a,b,c;
 	packed64bignum25519 MM16 ab, yx, aybx;
 	packed32bignum25519 MM16 bd, ac, bdac;
-
 
 	curve25519_sub(a, p->y, p->x);
 	curve25519_add(b, p->y, p->x);
@@ -135,6 +162,13 @@ static void
 ge25519_double(ge25519 *r, const ge25519 *p) {
 	ge25519_p1p1 MM16 t;
 	ge25519_double_p1p1(&t, p);
+	ge25519_p1p1_to_full_slow(r, &t);
+}
+
+static void
+ge25519_add(ge25519 *r, const ge25519 *p, const ge25519 *q) {
+	ge25519_p1p1 MM16 t;
+	ge25519_add_p1p1(&t, p, q);
 	ge25519_p1p1_to_full_slow(r, &t);
 }
 
@@ -269,7 +303,7 @@ ge25519_double_scalarmult_vartime(ge25519 *r, const ge25519 *p1, const bignum256
 	ge25519 MM16 d1;
 	ge25519_p1p1 MM16 t;
 	int32_t i;
-	
+
 	contract256_slidingwindow_modm(slide1, s1, S1_SWINDOWSIZE);
 	contract256_slidingwindow_modm(slide2, s2, S2_SWINDOWSIZE);
 

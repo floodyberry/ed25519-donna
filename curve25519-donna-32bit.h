@@ -1,7 +1,7 @@
 /*
 	Public domain by Andrew M. <liquidsun@gmail.com>
 	See: https://github.com/floodyberry/curve25519-donna
-	
+
 	32 bit integer curve25519 implementation
 */
 
