@@ -85,6 +85,10 @@ int test_batch(batch_test type, uint64_t *ticks) {
 	ret = ed25519_sign_open_batch(message_pointers, message_lengths, pk_pointers, sig_pointers, test_batch_count, valid);
 	*ticks = get_ticks() - t;
 	edassertequal((unsigned char *)&validret, (unsigned char *)&ret, sizeof(int), "batch return code");
+	for (i = 0; i < test_batch_count; i++) {
+		validret = ((type == batch_no_errors) || (i != 0)) ? 1 : 0;
+		edassertequal((unsigned char *)&validret, (unsigned char *)&valid[i], sizeof(int), "individual batch return code");
+	}
 	return ret;
 }
 
