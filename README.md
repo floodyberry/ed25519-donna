@@ -14,7 +14,7 @@ of course constant time in regard to secret data.
 Batch verfication time is the average time per 1 verification in a batch of 64 signatures.
 
 <table>
-<thead><tr><th>Implementation</th><th>Sign Cycles</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify Cycles (Batch)</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
+<thead><tr><th>Implementation</th><th>Sign Cycles</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify Cycles</th><th>gcc (Batch)</th><th>icc (Batch)</th><th>clang (Batch)</th></tr></thead>
 <tbody>
 <tr><td>ed25519-donna 32bit</td><td></td><td>603k</td><td>373k</td><td>451k</td><td></td><td>1755k (755k)</td><td>1118k (488k)</td><td>1352k (566k)</td></tr>
 <tr><td>ed25519-donna 64bit</td><td></td><td>132k</td><td>129k</td><td>140k</td><td></td><td>374k (160k)</td><td>386k (170k)</td><td>408k (167k)</td></tr>
