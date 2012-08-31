@@ -11,7 +11,7 @@ of course constant time in regard to secret data.
 
 #### Performance (On an E5200 @ 2.5ghz)
 
-Batch verfication time is the average time per 1 verification in a batch of 64 signatures. Counts are in thousands of cycles
+Batch verfication time (in parentheses) is the average time per 1 verification in a batch of 64 signatures. Counts are in thousands of cycles
 
 <table>
 <thead><tr><th>Implementation</th><th>Sign</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
