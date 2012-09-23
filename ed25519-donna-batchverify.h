@@ -188,10 +188,12 @@ unsigned char batch_point_buffer[3][32];
 static int
 ge25519_is_neutral_vartime(const ge25519 *p) {
 	static const unsigned char zero[32] = {0};
-	curve25519_contract(batch_point_buffer[0], p->x);
-	curve25519_contract(batch_point_buffer[1], p->y);
-	curve25519_contract(batch_point_buffer[2], p->z);
-	return (memcmp(batch_point_buffer[0], zero, 32) == 0) && (memcmp(batch_point_buffer[1], batch_point_buffer[2], 32) == 0);
+	unsigned char point_buffer[3][32];
+	curve25519_contract(point_buffer[0], p->x);
+	curve25519_contract(point_buffer[1], p->y);
+	curve25519_contract(point_buffer[2], p->z);
+	memcpy(batch_point_buffer[1], point_buffer[1], 32);
+	return (memcmp(point_buffer[0], zero, 32) == 0) && (memcmp(point_buffer[1], point_buffer[2], 32) == 0);
 }
 
 int
