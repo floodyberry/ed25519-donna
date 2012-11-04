@@ -60,7 +60,7 @@ cryptographic source:
 To generate a public key:
 
 	ed25519_public_key pk;
-	ed25519_public_key(sk, pk);
+	ed25519_publickey(sk, pk);
 
 To sign a message:
 
