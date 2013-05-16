@@ -8,7 +8,8 @@
 typedef struct isaacp_state_t {
 	uint32_t state[256];
 	unsigned char buffer[1024];
-	uint32_t a, b, c, left;
+	uint32_t a, b, c;
+	size_t left;
 } isaacp_state;
 
 #define isaacp_step(offset, mix) \
