@@ -27,7 +27,22 @@ SSE2 performance may be less impressive on AMD & older CPUs with slower SSE ops!
 
 #### Compilation
 
-No configuration is needed. 
+No configuration is needed **if you are compiling against OpenSSL**. 
+
+##### Hash Options
+
+If you are not compiling aginst OpenSSL, you will need a hash function.
+
+To use a simple/**slow** implementation of SHA-512, use `-DED25519_REFHASH` when compiling ed25519.c. This should never be used except to verify the code works when OpenSSL is not available.
+
+To use a custom hash function, use `-DED25519_CUSTOMHASH` when compiling ed25519.c and put your custom hash implementation in ed25519-hash-custom.h. The hash must have a 512bit digest and implement
+
+	struct ed25519_hash_context;
+
+	void ed25519_hash_init(ed25519_hash_context *ctx);
+	void ed25519_hash_update(ed25519_hash_context *ctx, const uint8_t *in, size_t inlen);
+	void ed25519_hash_final(ed25519_hash_context *ctx, uint8_t *hash);
+	void ed25519_hash(uint8_t *hash, const uint8_t *in, size_t inlen);
 
 ##### 32-bit
 
@@ -47,9 +62,11 @@ clang and icc are also supported
 
 #### Usage
 
-To use the code, link against "**ed25519.o** -lssl -mbits" and:
+To use the code, link against `ed25519.o -mbits` and:
 
 	#include "ed25519.h"
+
+Add `-lssl -lcrypto` when using OpenSSL (Some systems don't need -lcrypto? It might be trial and error).
 
 To generate a private key, simply generate 32 bytes from a secure
 cryptographic source:
@@ -81,6 +98,14 @@ To batch verify signatures:
 
 	/* valid[i] will be set to 1 if the individual signature was valid, 0 otherwise */
 	int all_valid = ed25519_sign_open_batch(mp, ml, pkp, sigp, num, valid) == 0;
+
+**Note**: Batch verification uses `ed25519_randombytes_unsafe`, implemented in 
+`ed25519-randombytes.h`, to generate random scalars for the verification code. 
+Currently this is implemented with a static RNG state that is initialized to the 
+same value on each run to test that the implementation is working. I don't have a 
+clean/portable method of implementing a thread-safe PRNG so if you use batch 
+verification seriously you will need to make sure the RNG is initialized with random data
+or use a separate source of randomness such as /dev/urandom.
 
 Unlike the [SUPERCOP](http://bench.cr.yp.to/supercop.html) version, signatures are
 not appended to messages, and there is no need for padding in front of messages. 

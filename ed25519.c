@@ -8,7 +8,7 @@
 #include "ed25519-donna.h"
 #include "ed25519.h"
 #include "ed25519-randombytes.h"
-#include <openssl/sha.h>
+#include "ed25519-hash.h"
 
 /*
 	Generates a (extsk[0..31]) and aExt (extsk[32..63])
@@ -16,7 +16,7 @@
 
 static void DONNA_INLINE
 ed25519_extsk(hash_512bits extsk, const ed25519_secret_key sk) {
-	SHA512(sk, 32, extsk);
+	ed25519_hash(extsk, sk, 32);
 	extsk[0] &= 248;
 	extsk[31] &= 127;
 	extsk[31] |= 64;
@@ -24,12 +24,12 @@ ed25519_extsk(hash_512bits extsk, const ed25519_secret_key sk) {
 
 static void
 ed25519_hram(hash_512bits hram, const ed25519_signature RS, const ed25519_public_key pk, const unsigned char *m, size_t mlen) {
-	SHA512_CTX shactx;
-	SHA512_Init(&shactx);
-	SHA512_Update(&shactx, RS, 32);
-	SHA512_Update(&shactx, pk, 32);
-	SHA512_Update(&shactx, m, mlen);
-	SHA512_Final(hram, &shactx);
+	ed25519_hash_context ctx;
+	ed25519_hash_init(&ctx);
+	ed25519_hash_update(&ctx, RS, 32);
+	ed25519_hash_update(&ctx, pk, 32);
+	ed25519_hash_update(&ctx, m, mlen);
+	ed25519_hash_final(&ctx, hram);
 }
 
 void
@@ -48,7 +48,7 @@ ed25519_publickey(const ed25519_secret_key sk, ed25519_public_key pk) {
 
 void
 ed25519_sign(const unsigned char *m, size_t mlen, const ed25519_secret_key sk, const ed25519_public_key pk, ed25519_signature RS) {
-	SHA512_CTX shactx;
+	ed25519_hash_context ctx;
 	bignum256modm r, S, a;
 	ge25519 MM16 R;
 	hash_512bits extsk, hashr, hram;
@@ -56,10 +56,10 @@ ed25519_sign(const unsigned char *m, size_t mlen, const ed25519_secret_key sk, c
 	ed25519_extsk(extsk, sk);
 
 	/* r = H(aExt[32..64], m) */
-	SHA512_Init(&shactx);
-	SHA512_Update(&shactx, extsk + 32, 32);
-	SHA512_Update(&shactx, m, mlen);
-	SHA512_Final(hashr, &shactx);
+	ed25519_hash_init(&ctx);
+	ed25519_hash_update(&ctx, extsk + 32, 32);
+	ed25519_hash_update(&ctx, m, mlen);
+	ed25519_hash_final(&ctx, hashr);
 	expand256_modm(r, hashr, 64);
 
 	/* R = rB */
