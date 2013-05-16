@@ -56,6 +56,7 @@ heap_updated_root(batch_heap *heap, size_t limbsize) {
 
 	/* sift root to the bottom */
 	parent = 0;
+	node = 1;
 	childl = 1;
 	childr = 2;
 	while ((childr < heap->size)) {
@@ -132,7 +133,7 @@ ge25519_multi_scalarmult_vartime_final(ge25519 *r, ge25519 *point, bignum256modm
 		flag >>= 1;
 
 	/* exponentiate */
-	while (1) {
+	for (;;) {
 		ge25519_double(r, r);
 		if (scalar[limb] & flag)
 			ge25519_add(r, r, point);
@@ -157,7 +158,7 @@ ge25519_multi_scalarmult_vartime(ge25519 *r, batch_heap *heap, size_t count) {
 	/* grab an odd number of scalars to build the heap, unknown limb sizes */
 	heap_build(heap, ((count + 1) / 2) | 1);
 
-	while (1) {
+	for (;;) {
 		heap_get_top2(heap, &max1, &max2, limbsize);
 
 		/* only one scalar remaining, we're done */

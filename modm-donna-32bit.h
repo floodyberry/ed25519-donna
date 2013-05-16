@@ -427,8 +427,10 @@ iszero256_modm_batch(const bignum256modm a) {
 static int
 isone256_modm_batch(const bignum256modm a) {
 	size_t i;
-	for (i = 0; i < 9; i++)
-		if (a[i] != ((i) ? 0 : 1))
+	if (a[0] != 1)
+		return 0;
+	for (i = 1; i < 9; i++)
+		if (a[i])
 			return 0;
 	return 1;
 }
