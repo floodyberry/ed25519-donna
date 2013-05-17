@@ -187,6 +187,22 @@ expand256_modm(bignum256modm out, const unsigned char *in, size_t len) {
 }
 
 static void
+expand_raw256_modm(bignum256modm out, const unsigned char in[32]) {
+	bignum256modm_element_t x[4];
+
+	x[0] = U8TO64_LE(in +  0);
+	x[1] = U8TO64_LE(in +  8);
+	x[2] = U8TO64_LE(in + 16);
+	x[3] = U8TO64_LE(in + 24);
+
+	out[0] = (                         x[0]) & 0xffffffffffffff;
+	out[1] = ((x[ 0] >> 56) | (x[ 1] <<  8)) & 0xffffffffffffff;
+	out[2] = ((x[ 1] >> 48) | (x[ 2] << 16)) & 0xffffffffffffff;
+	out[3] = ((x[ 2] >> 40) | (x[ 3] << 24)) & 0xffffffffffffff;
+	out[4] = ((x[ 3] >> 32)                ) & 0x0000ffffffffff;
+}
+
+static void
 contract256_modm(unsigned char out[32], const bignum256modm in) {
 	U64TO8_LE(out +  0, (in[0]      ) | (in[1] << 56));
 	U64TO8_LE(out +  8, (in[1] >>  8) | (in[2] << 48));

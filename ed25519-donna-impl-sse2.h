@@ -351,7 +351,7 @@ ge25519_windowb_equal(uint32_t b, uint32_t c) {
 }
 
 static void
-ge25519_scalarmult_base_choose_niels(ge25519_niels *t, uint32_t pos, signed char b) {
+ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const ge25519_niels table[256], uint32_t pos, signed char b) {
 	bignum25519 MM16 neg;
 	uint32_t sign = (uint32_t)((unsigned char)b >> 7);
 	uint32_t mask = ~(sign - 1);
@@ -362,7 +362,7 @@ ge25519_scalarmult_base_choose_niels(ge25519_niels *t, uint32_t pos, signed char
 	t->ysubx[0] = 1;
 
 	for (i = 0; i < 8; i++)
-		ge25519_move_conditional_niels(t, &ge25519_niels_base_multiples[(pos*8) + i], ge25519_windowb_equal(u, i + 1));
+		ge25519_move_conditional_niels(t, &table[(pos*8) + i], ge25519_windowb_equal(u, i + 1));
 
 	curve25519_swap_conditional(t->ysubx, t->xaddy, sign);
 	curve25519_neg(neg, t->t2d);
@@ -370,32 +370,32 @@ ge25519_scalarmult_base_choose_niels(ge25519_niels *t, uint32_t pos, signed char
 }
 
 static void
-ge25519_scalarmult_base_niels(ge25519 *r, const bignum256modm s) {
+ge25519_scalarmult_base_niels(ge25519 *r, const ge25519_niels table[256], const bignum256modm s) {
 	signed char b[64];
 	uint32_t i;
 	ge25519_niels MM16 t;
 
 	contract256_window4_modm(b, s);
 
-	ge25519_scalarmult_base_choose_niels(&t, 0, b[1]);
+	ge25519_scalarmult_base_choose_niels(&t, table, 0, b[1]);
 	curve25519_sub_reduce(r->x, t.xaddy, t.ysubx);
 	curve25519_add_reduce(r->y, t.xaddy, t.ysubx);
 	memset(r->z, 0, sizeof(bignum25519)); 
 	r->z[0] = 2;
 	curve25519_copy(r->t, t.t2d);
 	for (i = 3; i < 64; i += 2) {
-		ge25519_scalarmult_base_choose_niels(&t, i / 2, b[i]);
+		ge25519_scalarmult_base_choose_niels(&t, table, i / 2, b[i]);
 		ge25519_nielsadd2(r, &t);
 	}
 	ge25519_double_partial(r, r);
 	ge25519_double_partial(r, r);
 	ge25519_double_partial(r, r);
 	ge25519_double(r, r);
-	ge25519_scalarmult_base_choose_niels(&t, 0, b[0]);
+	ge25519_scalarmult_base_choose_niels(&t, table, 0, b[0]);
 	curve25519_mul(t.t2d, t.t2d, ge25519_ecd);
 	ge25519_nielsadd2(r, &t);
 	for(i = 2; i < 64; i += 2) {
-		ge25519_scalarmult_base_choose_niels(&t, i / 2, b[i]);
+		ge25519_scalarmult_base_choose_niels(&t, table, i / 2, b[i]);
 		ge25519_nielsadd2(r, &t);
 	}
 }

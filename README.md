@@ -113,6 +113,22 @@ Additionally, the secret key does not contain a copy of the public key, so it is
 32 bytes instead of 64 bytes, and the public key must be provided to the signing
 function.
 
+##### Curve25519
+
+Curve25519 public keys can be generated thanks to 
+[Adam Langley](http://www.imperialviolet.org/2013/05/10/fastercurve25519.html) 
+leveraging Ed25519's precomputed basepoint scalar multiplication.
+
+	curved25519_key sk, pk;
+	randombytes(sk, sizeof(curved25519_key));
+	curved25519_scalarmult_basepoint(pk, sk);
+
+Note the name is curved25519, a combination of curve and ed25519, to prevent 
+name clashes. Performance is slightly faster than short message ed25519
+signing due to both using the same code for the scalar multiply.
+
+
+
 #### Papers
 
 [Available on the Ed25519 website](http://ed25519.cr.yp.to/papers.html)

@@ -258,6 +258,30 @@ expand256_modm(bignum256modm out, const unsigned char *in, size_t len) {
 }
 
 static void
+expand_raw256_modm(bignum256modm out, const unsigned char in[32]) {
+	bignum256modm_element_t x[8];
+
+	x[0] = U8TO32_LE(in +  0);
+	x[1] = U8TO32_LE(in +  4);
+	x[2] = U8TO32_LE(in +  8);
+	x[3] = U8TO32_LE(in + 12);
+	x[4] = U8TO32_LE(in + 16);
+	x[5] = U8TO32_LE(in + 20);
+	x[6] = U8TO32_LE(in + 24);
+	x[7] = U8TO32_LE(in + 28);
+
+	out[0] = (                         x[0]) & 0x3fffffff;
+	out[1] = ((x[ 0] >> 30) | (x[ 1] <<  2)) & 0x3fffffff;
+	out[2] = ((x[ 1] >> 28) | (x[ 2] <<  4)) & 0x3fffffff;
+	out[3] = ((x[ 2] >> 26) | (x[ 3] <<  6)) & 0x3fffffff;
+	out[4] = ((x[ 3] >> 24) | (x[ 4] <<  8)) & 0x3fffffff;
+	out[5] = ((x[ 4] >> 22) | (x[ 5] << 10)) & 0x3fffffff;
+	out[6] = ((x[ 5] >> 20) | (x[ 6] << 12)) & 0x3fffffff;
+	out[7] = ((x[ 6] >> 18) | (x[ 7] << 14)) & 0x3fffffff;
+	out[8] = ((x[ 7] >> 16)                ) & 0x00ffffff;
+}
+
+static void
 contract256_modm(unsigned char out[32], const bignum256modm in) {
 	U32TO8_LE(out +  0, (in[0]      ) | (in[1] << 30));
 	U32TO8_LE(out +  4, (in[1] >>  2) | (in[2] << 28));

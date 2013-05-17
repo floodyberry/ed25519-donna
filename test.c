@@ -20,6 +20,11 @@ test_data dataset[] = {
 #include "regression.h"
 };
 
+/* result of the curve25519 scalarmult ((|255| * basepoint) * basepoint)... 1024 times */
+const curved25519_key curved25519_expected = {
+	0xac,0xce,0x24,0xb1,0xd4,0xa2,0x36,0x21,0x15,0xe2,0x3e,0x84,0x3c,0x23,0x2b,0x5f,0x95,0x6c,0xc0,0x7b,0x95,0x82,0xd7,0x93,0xd5,0x19,0xb6,0xf1,0xfb,0x96,0xd6,0x04
+};
+
 void edassert(int check, int round, const char *failreason) {
 	if (check)
 		return;
@@ -38,12 +43,13 @@ void edassertequal(const unsigned char *a, const unsigned char *b, size_t len, i
 	exit(1);
 }
 
-int main(int argc, const char *argv[]) {
+int main() {
 	int i, res;
 	ed25519_public_key pk;
 	ed25519_signature sig;
 	unsigned char forge[1024] = {'x'};
-	uint64_t ticks, pkticks = maxticks, signticks = maxticks, openticks = maxticks;
+	curved25519_key csk[2] = {{255}};
+	uint64_t ticks, pkticks = maxticks, signticks = maxticks, openticks = maxticks, curvedticks = maxticks;
 
 	for (i = 0; i < 1024; i++) {
 		ed25519_publickey(dataset[i].sk, pk);
@@ -58,6 +64,11 @@ int main(int argc, const char *argv[]) {
 
 		edassert(ed25519_sign_open(forge, (i) ? i : 1, pk, sig), i, "opened forged message");
 	}
+
+	for (i = 0; i < 1024; i++)
+		curved25519_scalarmult_basepoint(csk[(i & 1) ^ 1], csk[i & 1]);
+	edassertequal(curved25519_expected, csk[0], sizeof(curved25519_key), 0, "curve25519 failed to generate correct value");
+
 	printf("success\n");
 
 	for (i = 0; i < 2048; i++) {
@@ -67,9 +78,11 @@ int main(int argc, const char *argv[]) {
 		edassertequal(dataset[0].sig, sig, sizeof(sig), i, "signature didn't match");
 		timeit(res = ed25519_sign_open((unsigned char *)dataset[0].m, 0, pk, sig), openticks)
 		edassert(!res, 0, "failed to open message");
+		timeit(curved25519_scalarmult_basepoint(csk[1], csk[0]), curvedticks);
 	}
 	printf("%.0f ticks/public key generation\n", (double)pkticks);
 	printf("%.0f ticks/signature\n", (double)signticks);
 	printf("%.0f ticks/signature verification\n", (double)openticks);
+	printf("%.0f ticks/curve25519 basepoint scalarmult\n", (double)curvedticks);
 	return 0;
 }
