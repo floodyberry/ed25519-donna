@@ -61,7 +61,7 @@ isaacp_random(isaacp_state *st, void *p, size_t len) {
 }
 
 void
-ed25519_randombytes_unsafe(void *p, size_t len) {
+ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
 	static int initialized = 0;
 	static isaacp_state rng;
 

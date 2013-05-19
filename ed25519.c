@@ -5,6 +5,15 @@
 */
 
 
+/* define ED25519_SUFFIX to have it appended to the end of each public function */
+#if !defined(ED25519_SUFFIX)
+#define ED25519_SUFFIX 
+#endif
+
+#define ED25519_FN3(fn,suffix) fn##suffix
+#define ED25519_FN2(fn,suffix) ED25519_FN3(fn,suffix)
+#define ED25519_FN(fn)         ED25519_FN2(fn,ED25519_SUFFIX)
+
 #include "ed25519-donna.h"
 #include "ed25519.h"
 #include "ed25519-randombytes.h"
@@ -33,7 +42,7 @@ ed25519_hram(hash_512bits hram, const ed25519_signature RS, const ed25519_public
 }
 
 void
-ed25519_publickey(const ed25519_secret_key sk, ed25519_public_key pk) {
+ED25519_FN(ed25519_publickey) (const ed25519_secret_key sk, ed25519_public_key pk) {
 	bignum256modm a;
 	ge25519 MM16 A;
 	hash_512bits extsk;
@@ -47,7 +56,7 @@ ed25519_publickey(const ed25519_secret_key sk, ed25519_public_key pk) {
 
 
 void
-ed25519_sign(const unsigned char *m, size_t mlen, const ed25519_secret_key sk, const ed25519_public_key pk, ed25519_signature RS) {
+ED25519_FN(ed25519_sign) (const unsigned char *m, size_t mlen, const ed25519_secret_key sk, const ed25519_public_key pk, ed25519_signature RS) {
 	ed25519_hash_context ctx;
 	bignum256modm r, S, a;
 	ge25519 MM16 R;
@@ -82,7 +91,7 @@ ed25519_sign(const unsigned char *m, size_t mlen, const ed25519_secret_key sk, c
 }
 
 int
-ed25519_sign_open(const unsigned char *m, size_t mlen, const ed25519_public_key pk, const ed25519_signature RS) {
+ED25519_FN(ed25519_sign_open) (const unsigned char *m, size_t mlen, const ed25519_public_key pk, const ed25519_signature RS) {
 	ge25519 MM16 R, A;
 	hash_512bits hash;
 	bignum256modm hram, S;
@@ -113,7 +122,7 @@ ed25519_sign_open(const unsigned char *m, size_t mlen, const ed25519_public_key 
 */
 
 void
-curved25519_scalarmult_basepoint(curved25519_key pk, const curved25519_key e) {
+ED25519_FN(curved25519_scalarmult_basepoint) (curved25519_key pk, const curved25519_key e) {
 	curved25519_key ec;
 	bignum256modm s;
 	bignum25519 MM16 yplusz, zminusy;
