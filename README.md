@@ -127,7 +127,9 @@ Note the name is curved25519, a combination of curve and ed25519, to prevent
 name clashes. Performance is slightly faster than short message ed25519
 signing due to both using the same code for the scalar multiply.
 
+#### Testing
 
+Testing/fuzzing against reference implemenations is now available. See [fuzz/README](fuzz/README.md).
 
 #### Papers
 
