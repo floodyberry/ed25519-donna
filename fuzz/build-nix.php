@@ -5,7 +5,7 @@
 	}
 
 	function usage($reason) {
-		echoln("php build-nix.php --function=[curve25519,ed25519] --bits=[32,64] (--with-sse2 --with-openssl --compiler={gcc,clang,icc}) ");
+		echoln("php build-nix.php --function=[curve25519,ed25519] --bits=[32,64] (--with-sse2 --with-openssl --compiler=[gcc,clang,icc]) ");
 		echoln("");
 		if ($reason)
 			echoln($reason);

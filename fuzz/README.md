@@ -26,7 +26,7 @@ Optional parameters:
 
     Default: Reference SHA-512 implementation (slow!)
 
-* `--compiler={gcc,clang,icc}`
+* `--compiler=[gcc,clang,icc]`
 
     Default: gcc
 
@@ -39,10 +39,10 @@ example:
 
 Create a project with access to the ed25519 files.
 
-Add the following files to the project:
-
 If you are not using OpenSSL, add the `ED25519_REFHASH` define to the projects 
 "Properties/Preprocessor/Preprocessor Definitions" option
+
+Add the following files to the project:
 
 * `fuzz/curve25519-ref10.c`
 * `fuzz/ed25519-ref10.c`
