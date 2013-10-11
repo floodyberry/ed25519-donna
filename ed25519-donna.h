@@ -65,6 +65,7 @@ typedef struct ge25519_pniels_t {
 
 #if defined(HAVE_UINT128) && !defined(ED25519_SSE2)
 #include "ed25519-donna-64bit-tables.h"
+#include "ed25519-donna-64bit-x86.h"
 #else
 #include "ed25519-donna-32bit-tables.h"
 #endif

@@ -293,6 +293,8 @@ ge25519_double_scalarmult_vartime(ge25519 *r, const ge25519 *p1, const bignum256
 
 
 
+#if !defined(HAVE_GE25519_SCALARMULT_BASE_CHOOSE_NIELS)
+
 static uint32_t
 ge25519_windowb_equal(uint32_t b, uint32_t c) {
 	return ((b ^ c) - 1) >> 31;
@@ -319,10 +321,12 @@ ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const ge25519_niels table
 	for (i = 0; i < 8; i++)
 		ge25519_move_conditional_niels(t, &table[(pos*8) + i], ge25519_windowb_equal(u, i + 1));
 
-	curve25519_swap_conditional(t->ysubx, t->xaddy, sign);	
+	curve25519_swap_conditional(t->ysubx, t->xaddy, sign);
 	curve25519_neg(neg, t->t2d);
 	curve25519_move_conditional(t->t2d, neg, sign);
 }
+
+#endif /* HAVE_GE25519_SCALARMULT_BASE_CHOOSE_NIELS */
 
 
 /* computes [s]basepoint */
