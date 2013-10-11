@@ -143,7 +143,7 @@ curve25519_mul_noinline(bignum25519 out, const bignum25519 in2, const bignum2551
 
 
 /* out = in^(2 * count) */
-static void DONNA_INLINE
+static void
 curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 #if !defined(HAVE_NATIVE_UINT128)
 	uint128_t mul;
@@ -196,7 +196,7 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 	out[4] = r4;
 }
 
-static void
+static void DONNA_INLINE
 curve25519_square(bignum25519 out, const bignum25519 in) {
 #if !defined(HAVE_NATIVE_UINT128)
 	uint128_t mul;
