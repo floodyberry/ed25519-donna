@@ -1,4 +1,4 @@
-#if defined(COMPILER_GCC) && defined(CPU_X86_64)
+#if defined(ED25519_GCC_64BIT_CHOOSE)
 
 #define HAVE_GE25519_SCALARMULT_BASE_CHOOSE_NIELS
 
@@ -377,5 +377,5 @@ ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const ge25519_niels table
 	);
 }
 
-#endif /* defined(COMPILER_GCC) && defined(CPU_X86_64) */
+#endif /* defined(ED25519_GCC_64BIT_CHOOSE) */
 

@@ -320,6 +320,8 @@ curve25519_contract(unsigned char *out, const bignum25519 input) {
 	write51(3)
 }
 
+#if !defined(ED25519_GCC_64BIT_CHOOSE)
+
 /* out = (flag) ? in : out */
 static void DONNA_INLINE
 curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint64_t flag) {
@@ -343,6 +345,8 @@ curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint64_t iswap) {
 	x3 = swap & (a[3] ^ b[3]); a[3] ^= x3; b[3] ^= x3;
 	x4 = swap & (a[4] ^ b[4]); a[4] ^= x4; b[4] ^= x4;
 }
+
+#endif /* ED25519_GCC_64BIT_CHOOSE */
 
 #define ED25519_64BIT_TABLES
 
