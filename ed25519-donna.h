@@ -11,11 +11,13 @@
 
 #include "ed25519-donna-portable.h"
 
-/* detect extra features first so un-needed functions can be disabled throughout */
-#if defined(ED25519_SSE2)
-#else
-	#if defined(COMPILER_GCC) && defined(CPU_X86_64)
-	#define ED25519_GCC_64BIT_CHOOSE
+#if !defined(ED25519_NO_INLINE_ASM)
+	/* detect extra features first so un-needed functions can be disabled throughout */
+	#if defined(ED25519_SSE2)
+	#else
+		#if defined(COMPILER_GCC) && defined(CPU_X86_64)
+		#define ED25519_GCC_64BIT_CHOOSE
+		#endif
 	#endif
 #endif
 
