@@ -67,6 +67,18 @@ curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 	out[0] += c * 19;
 }
 
+/* out = -a */
+static void DONNA_INLINE
+curve25519_neg(bignum25519 out, const bignum25519 a) {
+	uint64_t c;
+	out[0] = two54m152 - a[0]  ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
+	out[1] = two54m8 - a[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
+	out[2] = two54m8 - a[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
+	out[3] = two54m8 - a[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
+	out[4] = two54m8 - a[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
+	out[0] += c * 19;
+}
+
 /* out = a * b */
 static void DONNA_INLINE
 curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {

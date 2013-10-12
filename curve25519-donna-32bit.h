@@ -73,6 +73,23 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[0] += 19 * c;
 }
 
+/* out = -a */
+static void DONNA_INLINE
+curve25519_neg(bignum25519 out, const bignum25519 a) {
+	uint32_t c;
+	out[0] = 0x7ffffda - a[0]    ; c = (out[0] >> 26); out[0] &= 0x3ffffff;
+	out[1] = 0x3fffffe - a[1] + c; c = (out[1] >> 25); out[1] &= 0x1ffffff;
+	out[2] = 0x7fffffe - a[2] + c; c = (out[2] >> 26); out[2] &= 0x3ffffff;
+	out[3] = 0x3fffffe - a[3] + c; c = (out[3] >> 25); out[3] &= 0x1ffffff;
+	out[4] = 0x7fffffe - a[4] + c; c = (out[4] >> 26); out[4] &= 0x3ffffff;
+	out[5] = 0x3fffffe - a[5] + c; c = (out[5] >> 25); out[5] &= 0x1ffffff;
+	out[6] = 0x7fffffe - a[6] + c; c = (out[6] >> 26); out[6] &= 0x3ffffff;
+	out[7] = 0x3fffffe - a[7] + c; c = (out[7] >> 25); out[7] &= 0x1ffffff;
+	out[8] = 0x7fffffe - a[8] + c; c = (out[8] >> 26); out[8] &= 0x3ffffff;
+	out[9] = 0x3fffffe - a[9] + c; c = (out[9] >> 25); out[9] &= 0x1ffffff;
+	out[0] += 19 * c;
+}
+
 /* out = a * b */
 #define curve25519_mul_noinline curve25519_mul
 static void
