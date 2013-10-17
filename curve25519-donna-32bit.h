@@ -183,16 +183,7 @@ curve25519_mul(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	m8 += c;                     r8 = (uint32_t)m8 & reduce_mask_26; c = (m8 >> 26);
 	m9 += c;                     r9 = (uint32_t)m9 & reduce_mask_25; p = (uint32_t)(m9 >> 25);
 	m0 = r0 + mul32x32_64(p,19); r0 = (uint32_t)m0 & reduce_mask_26; p = (uint32_t)(m0 >> 26);
-	r1 += p;      p = r1 >> 25; r1 &= reduce_mask_25;
-	r2 += p;      p = r2 >> 26; r2 &= reduce_mask_26;
-	r3 += p;      p = r3 >> 25; r3 &= reduce_mask_25;
-	r4 += p;      p = r4 >> 26; r4 &= reduce_mask_26;
-	r5 += p;      p = r5 >> 25; r5 &= reduce_mask_25;
-	r6 += p;      p = r6 >> 26; r6 &= reduce_mask_26;
-	r7 += p;      p = r7 >> 25; r7 &= reduce_mask_25;
-	r8 += p;      p = r8 >> 26; r8 &= reduce_mask_26;
-	r9 += p;      p = r9 >> 25; r9 &= reduce_mask_25;
-	r0 += p * 19;
+	r1 += p;
 
 	out[0] = r0;
 	out[1] = r1;
