@@ -8,9 +8,9 @@
 
 typedef uint64_t bignum25519[5];
 
-static const uint64_t reduce_mask_40 = 0x000000ffffffffffull;
-static const uint64_t reduce_mask_51 = 0x0007ffffffffffffull;
-static const uint64_t reduce_mask_56 = 0x00ffffffffffffffull;
+static const uint64_t reduce_mask_40 = ((uint64_t)1 << 40) - 1;
+static const uint64_t reduce_mask_51 = ((uint64_t)1 << 51) - 1;
+static const uint64_t reduce_mask_56 = ((uint64_t)1 << 56) - 1;
 
 /* out = in */
 static void DONNA_INLINE
@@ -43,27 +43,27 @@ curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 	out[0] += c * 19;
 }
 
-static const uint64_t two54m152 = (((uint64_t)1) << 54) - 152;
-static const uint64_t two54m8 = (((uint64_t)1) << 54) - 8;
+static const uint64_t twoP0      = 0x0fffffffffffda;
+static const uint64_t twoP1234   = 0x0ffffffffffffe;
 
 /* out = a - b */
 static void DONNA_INLINE
 curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
-	out[0] = a[0] + two54m152 - b[0];
-	out[1] = a[1] + two54m8 - b[1];
-	out[2] = a[2] + two54m8 - b[2];
-	out[3] = a[3] + two54m8 - b[3];
-	out[4] = a[4] + two54m8 - b[4];
+	out[0] = a[0] + twoP0    - b[0];
+	out[1] = a[1] + twoP1234 - b[1];
+	out[2] = a[2] + twoP1234 - b[2];
+	out[3] = a[3] + twoP1234 - b[3];
+	out[4] = a[4] + twoP1234 - b[4];
 }
 
 static void DONNA_INLINE
 curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
-	out[0] = a[0] + two54m152 - b[0]  ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
-	out[1] = a[1] + two54m8 - b[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
-	out[2] = a[2] + two54m8 - b[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
-	out[3] = a[3] + two54m8 - b[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
-	out[4] = a[4] + two54m8 - b[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
+	out[0] = a[0] + twoP0    - b[0]    ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
+	out[1] = a[1] + twoP1234 - b[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
+	out[2] = a[2] + twoP1234 - b[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
+	out[3] = a[3] + twoP1234 - b[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
+	out[4] = a[4] + twoP1234 - b[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
 	out[0] += c * 19;
 }
 
@@ -71,11 +71,11 @@ curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 static void DONNA_INLINE
 curve25519_neg(bignum25519 out, const bignum25519 a) {
 	uint64_t c;
-	out[0] = two54m152 - a[0]  ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
-	out[1] = two54m8 - a[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
-	out[2] = two54m8 - a[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
-	out[3] = two54m8 - a[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
-	out[4] = two54m8 - a[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
+	out[0] = twoP0    - a[0]    ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
+	out[1] = twoP1234 - a[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
+	out[2] = twoP1234 - a[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
+	out[3] = twoP1234 - a[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
+	out[4] = twoP1234 - a[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
 	out[0] += c * 19;
 }
 
@@ -132,13 +132,13 @@ curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 #endif
 
 
-	                     r0 = lo128(t[0]) & 0x7ffffffffffff; shr128(c, t[0], 51);
-	add128_64(t[1], c)   r1 = lo128(t[1]) & 0x7ffffffffffff; shr128(c, t[1], 51);
-	add128_64(t[2], c)   r2 = lo128(t[2]) & 0x7ffffffffffff; shr128(c, t[2], 51);
-	add128_64(t[3], c)   r3 = lo128(t[3]) & 0x7ffffffffffff; shr128(c, t[3], 51);
-	add128_64(t[4], c)   r4 = lo128(t[4]) & 0x7ffffffffffff; shr128(c, t[4], 51);
-	r0 +=   c * 19; c = r0 >> 51; r0 = r0 & 0x7ffffffffffff;
-	r1 +=   c;      c = r1 >> 51; r1 = r1 & 0x7ffffffffffff;
+	                     r0 = lo128(t[0]) & reduce_mask_51; shr128(c, t[0], 51);
+	add128_64(t[1], c)   r1 = lo128(t[1]) & reduce_mask_51; shr128(c, t[1], 51);
+	add128_64(t[2], c)   r2 = lo128(t[2]) & reduce_mask_51; shr128(c, t[2], 51);
+	add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
+	add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
+	r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
+	r1 +=   c;      c = r1 >> 51; r1 = r1 & reduce_mask_51;
 	r2 +=   c;
 
 	out[0] = r0;
@@ -191,13 +191,13 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 		mul64x64_128(t[4], d0, r4) mul64x64_128(mul, d1, r3) add128(t[4], mul) mul64x64_128(mul, r2,      r2) add128(t[4], mul)
 #endif
 
-		                     r0 = lo128(t[0]) & 0x7ffffffffffff; shr128(c, t[0], 51);
-		add128_64(t[1], c)   r1 = lo128(t[1]) & 0x7ffffffffffff; shr128(c, t[1], 51);
-		add128_64(t[2], c)   r2 = lo128(t[2]) & 0x7ffffffffffff; shr128(c, t[2], 51);
-		add128_64(t[3], c)   r3 = lo128(t[3]) & 0x7ffffffffffff; shr128(c, t[3], 51);
-		add128_64(t[4], c)   r4 = lo128(t[4]) & 0x7ffffffffffff; shr128(c, t[4], 51);
-		r0 +=   c * 19; c = r0 >> 51; r0 = r0 & 0x7ffffffffffff;
-		r1 +=   c;      c = r1 >> 51; r1 = r1 & 0x7ffffffffffff;
+		                     r0 = lo128(t[0]) & reduce_mask_51; shr128(c, t[0], 51);
+		add128_64(t[1], c)   r1 = lo128(t[1]) & reduce_mask_51; shr128(c, t[1], 51);
+		add128_64(t[2], c)   r2 = lo128(t[2]) & reduce_mask_51; shr128(c, t[2], 51);
+		add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
+		add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
+		r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
+		r1 +=   c;      c = r1 >> 51; r1 = r1 & reduce_mask_51;
 		r2 +=   c;
 	} while(--count);
 
@@ -243,7 +243,7 @@ curve25519_square(bignum25519 out, const bignum25519 in) {
 	mul64x64_128(t[4], d0, r4) mul64x64_128(mul, d1, r3) add128(t[4], mul) mul64x64_128(mul, r2,      r2) add128(t[4], mul)
 #endif
 
-		                    r0 = lo128(t[0]) & reduce_mask_51; shr128(c, t[0], 51);
+	                     r0 = lo128(t[0]) & reduce_mask_51; shr128(c, t[0], 51);
 	add128_64(t[1], c)   r1 = lo128(t[1]) & reduce_mask_51; shr128(c, t[1], 51);
 	add128_64(t[2], c)   r2 = lo128(t[2]) & reduce_mask_51; shr128(c, t[2], 51);
 	add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
@@ -268,7 +268,7 @@ curve25519_expand(bignum25519 out, const unsigned char *in) {
 	#define read51full(n,start,shift) \
 		for (t = in[(start)] >> (shift), i = 0; i < (6 + ((shift)/6)); i++) \
 			t |= ((uint64_t)in[i+(start)+1] << ((i * 8) + (8 - (shift)))); \
-		out[n] = t & 0x7ffffffffffff;
+		out[n] = t & reduce_mask_51;
 	#define read51(n) read51full(n,(n*51)/8,(n*3)&7)
 
 	read51(0)
@@ -293,16 +293,16 @@ curve25519_contract(unsigned char *out, const bignum25519 input) {
 	t[4] = input[4];
 
 	#define curve25519_contract_carry() \
-		t[1] += t[0] >> 51; t[0] &= 0x7ffffffffffff; \
-		t[2] += t[1] >> 51; t[1] &= 0x7ffffffffffff; \
-		t[3] += t[2] >> 51; t[2] &= 0x7ffffffffffff; \
-		t[4] += t[3] >> 51; t[3] &= 0x7ffffffffffff;
+		t[1] += t[0] >> 51; t[0] &= reduce_mask_51; \
+		t[2] += t[1] >> 51; t[1] &= reduce_mask_51; \
+		t[3] += t[2] >> 51; t[2] &= reduce_mask_51; \
+		t[4] += t[3] >> 51; t[3] &= reduce_mask_51;
 
 	#define curve25519_contract_carry_full() curve25519_contract_carry() \
-		t[0] += 19 * (t[4] >> 51); t[4] &= 0x7ffffffffffff;
+		t[0] += 19 * (t[4] >> 51); t[4] &= reduce_mask_51;
 
 	#define curve25519_contract_carry_final() curve25519_contract_carry() \
-		t[4] &= 0x7ffffffffffff;
+		t[4] &= reduce_mask_51;
 
 	curve25519_contract_carry_full()
 	curve25519_contract_carry_full()
@@ -313,11 +313,11 @@ curve25519_contract(unsigned char *out, const bignum25519 input) {
 	curve25519_contract_carry_full()
 
 	/* now between 19 and 2^255-1 in both cases, and offset by 19. */
-	t[0] += 0x8000000000000 - 19;
-	t[1] += 0x8000000000000 - 1;
-	t[2] += 0x8000000000000 - 1;
-	t[3] += 0x8000000000000 - 1;
-	t[4] += 0x8000000000000 - 1;
+	t[0] += (reduce_mask_51 + 1) - 19;
+	t[1] += (reduce_mask_51 + 1) - 1;
+	t[2] += (reduce_mask_51 + 1) - 1;
+	t[3] += (reduce_mask_51 + 1) - 1;
+	t[4] += (reduce_mask_51 + 1) - 1;
 
 	/* now between 2^255 and 2^256-20, and offset by 2^255. */
 	curve25519_contract_carry_final()
