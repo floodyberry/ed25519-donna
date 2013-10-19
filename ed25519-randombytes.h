@@ -1,10 +1,21 @@
+#ifdef ED25519_OPENSSLRNG
+#include <openssl/rand.h>
+
+void
+ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
+
+  RAND_bytes(p, (int) len);
+
+}
+
+
+#else
 /*
 	ISAAC+ "variant", the paper is not clear on operator precedence and other
 	things. This is the "first in, first out" option!
 
 	Not threadsafe or securely initialized, only for deterministic testing
 */
-
 typedef struct isaacp_state_t {
 	uint32_t state[256];
 	unsigned char buffer[1024];
@@ -74,4 +85,4 @@ ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
 
 	isaacp_random(&rng, p, len);
 }
-
+#endif
