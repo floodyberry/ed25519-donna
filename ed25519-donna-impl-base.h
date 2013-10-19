@@ -2,14 +2,14 @@
 	conversions
 */
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 ge25519_p1p1_to_partial(ge25519 *r, const ge25519_p1p1 *p) {
 	curve25519_mul(r->x, p->x, p->t);
 	curve25519_mul(r->y, p->y, p->z);
 	curve25519_mul(r->z, p->z, p->t); 
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 ge25519_p1p1_to_full(ge25519 *r, const ge25519_p1p1 *p) {
 	curve25519_mul(r->x, p->x, p->t);
 	curve25519_mul(r->y, p->y, p->z);
@@ -298,7 +298,7 @@ ge25519_windowb_equal(uint32_t b, uint32_t c) {
 	return ((b ^ c) - 1) >> 31;
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 ge25519_move_conditional_niels(ge25519_niels *a, const ge25519_niels *b, uint32_t flag) {
 	curve25519_move_conditional(a->ysubx, b->ysubx, flag);
 	curve25519_move_conditional(a->xaddy, b->xaddy, flag);

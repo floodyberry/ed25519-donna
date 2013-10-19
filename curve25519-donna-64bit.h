@@ -13,7 +13,7 @@ static const uint64_t reduce_mask_51 = 0x0007ffffffffffffull;
 static const uint64_t reduce_mask_56 = 0x00ffffffffffffffull;
 
 /* out = in */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_copy(bignum25519 out, const bignum25519 in) {
 	out[0] = in[0];
 	out[1] = in[1];
@@ -23,7 +23,7 @@ curve25519_copy(bignum25519 out, const bignum25519 in) {
 }
 
 /* out = a + b */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[0] = a[0] + b[0];
 	out[1] = a[1] + b[1];
@@ -32,7 +32,7 @@ curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[4] = a[4] + b[4];
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
 	out[0] = a[0] + b[0]    ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
@@ -47,7 +47,7 @@ static const uint64_t two54m152 = (((uint64_t)1) << 54) - 152;
 static const uint64_t two54m8 = (((uint64_t)1) << 54) - 8;
 
 /* out = a - b */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[0] = a[0] + two54m152 - b[0];
 	out[1] = a[1] + two54m8 - b[1];
@@ -56,7 +56,7 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[4] = a[4] + two54m8 - b[4];
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
 	out[0] = a[0] + two54m152 - b[0]  ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
@@ -68,7 +68,7 @@ curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 }
 
 /* out = a * b */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 #if !defined(HAVE_NATIVE_UINT128)
 	uint128_t mul;
@@ -143,7 +143,7 @@ curve25519_mul_noinline(bignum25519 out, const bignum25519 in2, const bignum2551
 
 
 /* out = in^(2 * count) */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 #if !defined(HAVE_NATIVE_UINT128)
 	uint128_t mul;
@@ -248,7 +248,7 @@ curve25519_square(bignum25519 out, const bignum25519 in) {
 }
 
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_expand(bignum25519 out, const unsigned char *in) {
 	uint64_t t;
 	unsigned i;
@@ -269,7 +269,7 @@ curve25519_expand(bignum25519 out, const unsigned char *in) {
 /* Take a fully reduced polynomial form number and contract it into a
  * little-endian, 32-byte array
  */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_contract(unsigned char *out, const bignum25519 input) {
 	uint64_t t[5];
 	uint64_t f, i;
@@ -321,7 +321,7 @@ curve25519_contract(unsigned char *out, const bignum25519 input) {
 }
 
 /* out = (flag) ? in : out */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint64_t flag) {
 	const uint64_t nb = flag - 1, b = ~nb;
 	out[0] = (out[0] & nb) | (in[0] & b);
@@ -332,7 +332,7 @@ curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint64_t flag
 }
 
 /* if (iswap) swap(a, b) */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint64_t iswap) {
 	const uint64_t swap = (uint64_t)(-(int64_t)iswap);
 	uint64_t x0,x1,x2,x3,x4;

@@ -23,7 +23,7 @@
 	Generates a (extsk[0..31]) and aExt (extsk[32..63])
 */
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 ed25519_extsk(hash_512bits extsk, const ed25519_secret_key sk) {
 	ed25519_hash(extsk, sk, 32);
 	extsk[0] &= 248;

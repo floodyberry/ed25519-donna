@@ -17,7 +17,7 @@
 #else
 	#include <sys/param.h>
 	#undef inline
-	#define inline __attribute__((always_inline))
+	#define inline inline __attribute__((always_inline))
 	#define MM16 __attribute__((aligned(16)))
 	#define ROTL32(a,b) (((a) << (b)) | ((a) >> (32 - b)))
 	#define ROTR32(a,b) (((a) >> (b)) | ((a) << (32 - b)))

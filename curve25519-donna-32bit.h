@@ -10,7 +10,7 @@ typedef uint32_t bignum25519align16[12];
 
 
 /* out = in */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_copy(bignum25519 out, const bignum25519 in) {
 	out[0] = in[0];
 	out[1] = in[1];
@@ -25,7 +25,7 @@ curve25519_copy(bignum25519 out, const bignum25519 in) {
 }
 
 /* out = a + b */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[0] = a[0] + b[0];
 	out[1] = a[1] + b[1];
@@ -39,7 +39,7 @@ curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[9] = a[9] + b[9];
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint32_t c;
 	out[0] = a[0] + b[0]    ; c = (out[0] >> 26); out[0] &= 0x3ffffff;
@@ -57,7 +57,7 @@ curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 
 /* out = a - b */
 #define curve25519_sub_reduce curve25519_sub
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint32_t c;
 	out[0] = 0x7ffffda + a[0] - b[0]    ; c = (out[0] >> 26); out[0] &= 0x3ffffff;
@@ -441,7 +441,7 @@ curve25519_contract(unsigned char out[32], const bignum25519 in) {
 
 
 /* out = (flag) ? in : out */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag) {
 	const uint32_t nb = flag - 1, b = ~nb;
 	out[0] = (out[0] & nb) | (in[0] & b);
@@ -457,7 +457,7 @@ curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag
 }
 
 /* if (iswap) swap(a, b) */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint32_t iswap) {
 	const uint32_t swap = (uint32_t)(-(int32_t)iswap);
 	uint32_t x0,x1,x2,x3,x4,x5,x6,x7,x8,x9;
