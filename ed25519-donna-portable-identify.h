@@ -29,11 +29,19 @@
 	#define COMPILER_INTEL
 #endif
 #if defined(__GNUC__)
-	#define COMPILER_GCC
+	#if (__GNUC__ >= 3)
+		#define COMPILER_GCC ((__GNUC__ * 10000) + (__GNUC_MINOR__ * 100) + (__GNUC_PATCHLEVEL__))
+	#else
+		#define COMPILER_GCC ((__GNUC__ * 10000) + (__GNUC_MINOR__ * 100)                        )
+	#endif
 #endif
 #if defined(__PATHCC__)
 	#define COMPILER_PATHCC
 #endif
+#if defined(__clang__)
+	#define COMPILER_CLANG ((__clang_major__ * 10000) + (__clang_minor__ * 100) + (__clang_patchlevel__))
+#endif
+
 
 
 /* cpu */
