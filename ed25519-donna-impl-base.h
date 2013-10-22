@@ -42,6 +42,7 @@ ge25519_add_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519 *q) {
 	curve25519_mul(c, p->t, q->t);
 	curve25519_mul(c, c, ge25519_ec2d);
 	curve25519_mul(d, p->z, q->z);
+	curve25519_add(d, d, d);
 	curve25519_sub(r->x, b, a);
 	curve25519_add(r->y, b, a);
 	curve25519_add_after_basic(r->z, d, c);
