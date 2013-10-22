@@ -47,7 +47,7 @@ ed25519_verify(const unsigned char *x, const unsigned char *y, size_t len) {
 	size_t differentbits = 0;
 	while (len--)
 		differentbits |= (*x++ ^ *y++);
-	return (1 & ((differentbits - 1) >> 8));
+	return (int) (1 & ((differentbits - 1) >> 8));
 }
 
 

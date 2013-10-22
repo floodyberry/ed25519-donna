@@ -60,7 +60,7 @@ static const packedelem32 MM16 packed32zeromodp0 = {{0x7ffffda,0x7ffffda,0x3ffff
 static const packedelem32 MM16 packed32zeromodp1 = {{0x7fffffe,0x7fffffe,0x3fffffe,0x3fffffe}};
 
 /* out = in */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_copy(bignum25519 out, const bignum25519 in) {
 	xmmi x0,x1,x2;
 	x0 = _mm_load_si128((xmmi*)in + 0);
@@ -72,7 +72,7 @@ curve25519_copy(bignum25519 out, const bignum25519 in) {
 }
 
 /* out = a + b */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	xmmi a0,a1,a2,b0,b1,b2;
 	a0 = _mm_load_si128((xmmi*)a + 0);
@@ -89,7 +89,7 @@ curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	_mm_store_si128((xmmi*)out + 2, a2);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	xmmi a0,a1,a2,b0,b1,b2;
 	xmmi c1,c2,c3;
@@ -124,7 +124,7 @@ curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 }
 
 #define curve25519_sub_reduce curve25519_sub
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	xmmi a0,a1,a2,b0,b1,b2;
 	xmmi c1,c2,c3;
@@ -469,7 +469,7 @@ curve25519_square_times(bignum25519 r, const bignum25519 in, int count) {
 	_mm_store_si128((xmmi*)r + 2, r89);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_tangle32(packedelem32 *out, const bignum25519 x, const bignum25519 z) {
 	xmmi x0,x1,x2,z0,z1,z2;
 
@@ -487,7 +487,7 @@ curve25519_tangle32(packedelem32 *out, const bignum25519 x, const bignum25519 z)
 	out[4].v = _mm_unpacklo_epi32(x2, z2);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_untangle32(bignum25519 x, bignum25519 z, const packedelem32 *in) {
 	xmmi t0,t1,t2,t3,t4,zero;
 
@@ -505,7 +505,7 @@ curve25519_untangle32(bignum25519 x, bignum25519 z, const packedelem32 *in) {
 	_mm_store_si128((xmmi *)z + 2, _mm_unpackhi_epi64(t4, zero));
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add_reduce_packed32(packedelem32 *out, const packedelem32 *r, const packedelem32 *s) {
 	xmmi r0,r1,r2,r3,r4;
 	xmmi s0,s1,s2,s3,s4,s5;
@@ -537,7 +537,7 @@ curve25519_add_reduce_packed32(packedelem32 *out, const packedelem32 *r, const p
 	out[4].v = _mm_unpackhi_epi64(s4, s5); /* 88 99 */
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_add_packed32(packedelem32 *out, const packedelem32 *r, const packedelem32 *s) {
 	out[0].v = _mm_add_epi32(r[0].v, s[0].v);
 	out[1].v = _mm_add_epi32(r[1].v, s[1].v);
@@ -546,7 +546,7 @@ curve25519_add_packed32(packedelem32 *out, const packedelem32 *r, const packedel
 	out[4].v = _mm_add_epi32(r[4].v, s[4].v);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_sub_packed32(packedelem32 *out, const packedelem32 *r, const packedelem32 *s) {
 	xmmi r0,r1,r2,r3,r4;
 	xmmi s0,s1,s2,s3,s4,s5;
@@ -583,7 +583,7 @@ curve25519_sub_packed32(packedelem32 *out, const packedelem32 *r, const packedel
 	out[4].v = _mm_unpackhi_epi64(s4, s5); /* 88 99 */
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_tangle64_from32(packedelem64 *a, packedelem64 *b, const packedelem32 *c, const packedelem32 *d) {
 	xmmi c0,c1,c2,c3,c4,c5,t;
 	xmmi d0,d1,d2,d3,d4,d5;
@@ -626,7 +626,7 @@ curve25519_tangle64_from32(packedelem64 *a, packedelem64 *b, const packedelem32 
 	t = _mm_unpacklo_epi64(c5, d5); b[8].v = t; b[9].v = _mm_srli_epi64(t, 32);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_tangle64(packedelem64 *out, const bignum25519 x, const bignum25519 z) {
 	xmmi x0,x1,x2,z0,z1,z2,t;
 
@@ -644,7 +644,7 @@ curve25519_tangle64(packedelem64 *out, const bignum25519 x, const bignum25519 z)
 	t = _mm_unpacklo_epi64(x2, z2);	out[8].v = t; out[9].v = _mm_srli_epi64(t, 32);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_tangleone64(packedelem64 *out, const bignum25519 x) {
 	xmmi x0,x1,x2;
 
@@ -664,7 +664,7 @@ curve25519_tangleone64(packedelem64 *out, const bignum25519 x) {
 	out[9].v = _mm_shuffle_epi32(x2, _MM_SHUFFLE(1,1,1,1));
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_untangle64(bignum25519 x, bignum25519 z, const packedelem64 *in) {
 	_mm_store_si128((xmmi *)(x + 0), _mm_unpacklo_epi64(_mm_unpacklo_epi32(in[0].v, in[1].v), _mm_unpacklo_epi32(in[2].v, in[3].v)));
 	_mm_store_si128((xmmi *)(x + 4), _mm_unpacklo_epi64(_mm_unpacklo_epi32(in[4].v, in[5].v), _mm_unpacklo_epi32(in[6].v, in[7].v)));
@@ -674,7 +674,7 @@ curve25519_untangle64(bignum25519 x, bignum25519 z, const packedelem64 *in) {
 	_mm_store_si128((xmmi *)(z + 8), _mm_unpackhi_epi32(in[8].v, in[9].v)                                                          );
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_mul_packed64(packedelem64 *out, const packedelem64 *r, const packedelem64 *s) {
 	xmmi r1,r2,r3,r4,r5,r6,r7,r8,r9;
 	xmmi r1_2,r3_2,r5_2,r7_2,r9_2;
@@ -729,7 +729,7 @@ curve25519_mul_packed64(packedelem64 *out, const packedelem64 *r, const packedel
 	c1 = _mm_srli_epi64(out[0].v, 26); c2 = _mm_srli_epi64(out[4].v, 26); out[0].v = _mm_and_si128(out[0].v, packedmask26.v); out[4].v = _mm_and_si128(out[4].v, packedmask26.v); out[1].v = _mm_add_epi64(out[1].v, c1); out[5].v = _mm_add_epi64(out[5].v, c2);
 }
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_square_packed64(packedelem64 *out, const packedelem64 *r) {
 	xmmi r0,r1,r2,r3;
 	xmmi r1_2,r3_2,r4_2,r5_2,r6_2,r7_2;
@@ -790,7 +790,7 @@ curve25519_square_packed64(packedelem64 *out, const packedelem64 *r) {
 
 
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_expand(bignum25519 out, const unsigned char in[32]) {
 	#define F(n,start,shift,mask) \
 		out[n] = \
@@ -818,7 +818,7 @@ curve25519_expand(bignum25519 out, const unsigned char in[32]) {
 /* Take a fully reduced polynomial form number and contract it into a
  * little-endian, 32-byte array
  */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_contract(unsigned char out[32], const bignum25519 in) {
 	MM16 bignum25519 f;
 	curve25519_copy(f, in);
@@ -900,7 +900,7 @@ curve25519_contract(unsigned char out[32], const bignum25519 in) {
 }
 
 /* if (iswap) swap(a, b) */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint32_t iswap) {
 	const uint32_t swap = (uint32_t)(-(int32_t)iswap);
 	xmmi a0,a1,a2,b0,b1,b2,x0,x1,x2;
@@ -934,7 +934,7 @@ curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint32_t iswap) {
 }
 
 /* out = (flag) ? out : in */
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag) {
 	xmmi a0,a1,a2,b0,b1,b2;
 	const uint32_t nb = flag - 1;

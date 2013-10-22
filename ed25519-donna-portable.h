@@ -16,8 +16,6 @@
 	#define ROTR32(a,b) _rotr(a,b)
 #else
 	#include <sys/param.h>
-	#undef inline
-	#undef noinline
 	#define DONNA_INLINE inline __attribute__((always_inline))
 	#define DONNA_NOINLINE __attribute__((noinline))
 	#define MM16 __attribute__((aligned(16)))
@@ -74,12 +72,14 @@
 #endif
 
 /* endian */
+#if !defined(ED25519_OPENSSLRNG)
 static inline void U32TO8_LE(unsigned char *p, const uint32_t v) {
 	p[0] = (unsigned char)(v      );
 	p[1] = (unsigned char)(v >>  8);
 	p[2] = (unsigned char)(v >> 16);
 	p[3] = (unsigned char)(v >> 24);
 }
+#endif
 
 #if !defined(HAVE_UINT128)
 static inline uint32_t U8TO32_LE(const unsigned char *p) {
