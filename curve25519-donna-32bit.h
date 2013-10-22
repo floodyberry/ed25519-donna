@@ -43,6 +43,22 @@ curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 }
 
 static void DONNA_INLINE
+curve25519_add_after_basic(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	uint32_t c;
+	out[0] = a[0] + b[0]    ; c = (out[0] >> 26); out[0] &= reduce_mask_26;
+	out[1] = a[1] + b[1] + c; c = (out[1] >> 25); out[1] &= reduce_mask_25;
+	out[2] = a[2] + b[2] + c; c = (out[2] >> 26); out[2] &= reduce_mask_26;
+	out[3] = a[3] + b[3] + c; c = (out[3] >> 25); out[3] &= reduce_mask_25;
+	out[4] = a[4] + b[4] + c; c = (out[4] >> 26); out[4] &= reduce_mask_26;
+	out[5] = a[5] + b[5] + c; c = (out[5] >> 25); out[5] &= reduce_mask_25;
+	out[6] = a[6] + b[6] + c; c = (out[6] >> 26); out[6] &= reduce_mask_26;
+	out[7] = a[7] + b[7] + c; c = (out[7] >> 25); out[7] &= reduce_mask_25;
+	out[8] = a[8] + b[8] + c; c = (out[8] >> 26); out[8] &= reduce_mask_26;
+	out[9] = a[9] + b[9] + c; c = (out[9] >> 25); out[9] &= reduce_mask_25;
+	out[0] += 19 * c;
+}
+
+static void DONNA_INLINE
 curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint32_t c;
 	out[0] = a[0] + b[0]    ; c = (out[0] >> 26); out[0] &= reduce_mask_26;
@@ -62,9 +78,11 @@ curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 static const uint32_t twoP0       = 0x07ffffda;
 static const uint32_t twoP13579   = 0x03fffffe;
 static const uint32_t twoP2468    = 0x07fffffe;
+static const uint32_t fourP0      = 0x0fffffb4;
+static const uint32_t fourP13579  = 0x07fffffc;
+static const uint32_t fourP2468   = 0x0ffffffc;
 
 /* out = a - b */
-#define curve25519_sub_reduce curve25519_sub
 static void DONNA_INLINE
 curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint32_t c;
@@ -72,12 +90,44 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[1] = twoP13579 + a[1] - b[1] + c; c = (out[1] >> 25); out[1] &= reduce_mask_25;
 	out[2] = twoP2468  + a[2] - b[2] + c; c = (out[2] >> 26); out[2] &= reduce_mask_26;
 	out[3] = twoP13579 + a[3] - b[3] + c; c = (out[3] >> 25); out[3] &= reduce_mask_25;
-	out[4] = twoP2468  + a[4] - b[4] + c; c = (out[4] >> 26); out[4] &= reduce_mask_26;
-	out[5] = twoP13579 + a[5] - b[5] + c; c = (out[5] >> 25); out[5] &= reduce_mask_25;
-	out[6] = twoP2468  + a[6] - b[6] + c; c = (out[6] >> 26); out[6] &= reduce_mask_26;
-	out[7] = twoP13579 + a[7] - b[7] + c; c = (out[7] >> 25); out[7] &= reduce_mask_25;
-	out[8] = twoP2468  + a[8] - b[8] + c; c = (out[8] >> 26); out[8] &= reduce_mask_26;
-	out[9] = twoP13579 + a[9] - b[9] + c; c = (out[9] >> 25); out[9] &= reduce_mask_25;
+	out[4] = twoP2468  + a[4] - b[4] + c;
+	out[5] = twoP13579 + a[5] - b[5]    ;
+	out[6] = twoP2468  + a[6] - b[6]    ;
+	out[7] = twoP13579 + a[7] - b[7]    ;
+	out[8] = twoP2468  + a[8] - b[8]    ;
+	out[9] = twoP13579 + a[9] - b[9]    ;
+}
+
+/* out = a - b, where a is the result of a basic op (add,sub) */
+static void DONNA_INLINE
+curve25519_sub_after_basic(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	uint32_t c;
+	out[0] = fourP0     + a[0] - b[0]    ; c = (out[0] >> 26); out[0] &= reduce_mask_26;
+	out[1] = fourP13579 + a[1] - b[1] + c; c = (out[1] >> 25); out[1] &= reduce_mask_25;
+	out[2] = fourP2468  + a[2] - b[2] + c; c = (out[2] >> 26); out[2] &= reduce_mask_26;
+	out[3] = fourP13579 + a[3] - b[3] + c; c = (out[3] >> 25); out[3] &= reduce_mask_25;
+	out[4] = fourP2468  + a[4] - b[4] + c; c = (out[4] >> 26); out[4] &= reduce_mask_26;
+	out[5] = fourP13579 + a[5] - b[5] + c; c = (out[5] >> 25); out[5] &= reduce_mask_25;
+	out[6] = fourP2468  + a[6] - b[6] + c; c = (out[6] >> 26); out[6] &= reduce_mask_26;
+	out[7] = fourP13579 + a[7] - b[7] + c; c = (out[7] >> 25); out[7] &= reduce_mask_25;
+	out[8] = fourP2468  + a[8] - b[8] + c; c = (out[8] >> 26); out[8] &= reduce_mask_26;
+	out[9] = fourP13579 + a[9] - b[9] + c; c = (out[9] >> 25); out[9] &= reduce_mask_25;
+	out[0] += 19 * c;
+}
+
+static void DONNA_INLINE
+curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	uint32_t c;
+	out[0] = fourP0     + a[0] - b[0]    ; c = (out[0] >> 26); out[0] &= reduce_mask_26;
+	out[1] = fourP13579 + a[1] - b[1] + c; c = (out[1] >> 25); out[1] &= reduce_mask_25;
+	out[2] = fourP2468  + a[2] - b[2] + c; c = (out[2] >> 26); out[2] &= reduce_mask_26;
+	out[3] = fourP13579 + a[3] - b[3] + c; c = (out[3] >> 25); out[3] &= reduce_mask_25;
+	out[4] = fourP2468  + a[4] - b[4] + c; c = (out[4] >> 26); out[4] &= reduce_mask_26;
+	out[5] = fourP13579 + a[5] - b[5] + c; c = (out[5] >> 25); out[5] &= reduce_mask_25;
+	out[6] = fourP2468  + a[6] - b[6] + c; c = (out[6] >> 26); out[6] &= reduce_mask_26;
+	out[7] = fourP13579 + a[7] - b[7] + c; c = (out[7] >> 25); out[7] &= reduce_mask_25;
+	out[8] = fourP2468  + a[8] - b[8] + c; c = (out[8] >> 26); out[8] &= reduce_mask_26;
+	out[9] = fourP13579 + a[9] - b[9] + c; c = (out[9] >> 25); out[9] &= reduce_mask_25;
 	out[0] += 19 * c;
 }
 

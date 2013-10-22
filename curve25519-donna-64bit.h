@@ -32,6 +32,16 @@ curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[4] = a[4] + b[4];
 }
 
+/* out = a + b, where a and/or b are the result of a basic op (add,sub) */
+static void DONNA_INLINE
+curve25519_add_after_basic(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	out[0] = a[0] + b[0];
+	out[1] = a[1] + b[1];
+	out[2] = a[2] + b[2];
+	out[3] = a[3] + b[3];
+	out[4] = a[4] + b[4];
+}
+
 static void DONNA_INLINE
 curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
@@ -43,8 +53,11 @@ curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 	out[0] += c * 19;
 }
 
+/* multiples of p */
 static const uint64_t twoP0      = 0x0fffffffffffda;
 static const uint64_t twoP1234   = 0x0ffffffffffffe;
+static const uint64_t fourP0     = 0x1fffffffffffb4;
+static const uint64_t fourP1234  = 0x1ffffffffffffc;
 
 /* out = a - b */
 static void DONNA_INLINE
@@ -56,14 +69,24 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	out[4] = a[4] + twoP1234 - b[4];
 }
 
+/* out = a - b, where a and/or b are the result of a basic op (add,sub) */
+static void DONNA_INLINE
+curve25519_sub_after_basic(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	out[0] = a[0] + fourP0    - b[0];
+	out[1] = a[1] + fourP1234 - b[1];
+	out[2] = a[2] + fourP1234 - b[2];
+	out[3] = a[3] + fourP1234 - b[3];
+	out[4] = a[4] + fourP1234 - b[4];
+}
+
 static void DONNA_INLINE
 curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	uint64_t c;
-	out[0] = a[0] + twoP0    - b[0]    ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
-	out[1] = a[1] + twoP1234 - b[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
-	out[2] = a[2] + twoP1234 - b[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
-	out[3] = a[3] + twoP1234 - b[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
-	out[4] = a[4] + twoP1234 - b[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
+	out[0] = a[0] + fourP0    - b[0]    ; c = (out[0] >> 51); out[0] &= reduce_mask_51;
+	out[1] = a[1] + fourP1234 - b[1] + c; c = (out[1] >> 51); out[1] &= reduce_mask_51;
+	out[2] = a[2] + fourP1234 - b[2] + c; c = (out[2] >> 51); out[2] &= reduce_mask_51;
+	out[3] = a[3] + fourP1234 - b[3] + c; c = (out[3] >> 51); out[3] &= reduce_mask_51;
+	out[4] = a[4] + fourP1234 - b[4] + c; c = (out[4] >> 51); out[4] &= reduce_mask_51;
 	out[0] += c * 19;
 }
 
@@ -138,8 +161,7 @@ curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 	add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
 	add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
 	r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
-	r1 +=   c;      c = r1 >> 51; r1 = r1 & reduce_mask_51;
-	r2 +=   c;
+	r1 +=   c;
 
 	out[0] = r0;
 	out[1] = r1;
@@ -197,8 +219,7 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 		add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
 		add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
 		r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
-		r1 +=   c;      c = r1 >> 51; r1 = r1 & reduce_mask_51;
-		r2 +=   c;
+		r1 +=   c;
 	} while(--count);
 
 	out[0] = r0;
@@ -249,8 +270,7 @@ curve25519_square(bignum25519 out, const bignum25519 in) {
 	add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
 	add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
 	r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
-	r1 +=   c;      c = r1 >> 51; r1 = r1 & reduce_mask_51;
-	r2 +=   c;
+	r1 +=   c;
 
 	out[0] = r0;
 	out[1] = r1;
