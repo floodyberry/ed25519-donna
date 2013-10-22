@@ -162,6 +162,41 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 }
 
 
+static void DONNA_INLINE
+curve25519_neg(bignum25519 out, const bignum25519 b) {
+	xmmi a0,a1,a2,b0,b1,b2;
+	xmmi c1,c2,c3;
+	xmmi r0,r1,r2,r3,r4,r5;
+
+	a0 = zeromodp0.v;
+	a1 = zeromodp1.v;
+	a2 = zeromodp2.v;
+	b0 = _mm_load_si128((xmmi*)b + 0);
+	b1 = _mm_load_si128((xmmi*)b + 1);
+	b2 = _mm_load_si128((xmmi*)b + 2);
+	a0 = _mm_sub_epi32(a0, b0);
+	a1 = _mm_sub_epi32(a1, b1);
+	a2 = _mm_sub_epi32(a2, b2);
+
+	r0 = _mm_and_si128(_mm_unpacklo_epi64(a0, a1), bot32bitmask.v);
+	r1 = _mm_srli_epi64(_mm_unpacklo_epi64(a0, a1), 32);
+	r2 = _mm_and_si128(_mm_unpackhi_epi64(a0, a1), bot32bitmask.v);
+	r3 = _mm_srli_epi64(_mm_unpackhi_epi64(a0, a1), 32);
+	r4 = _mm_and_si128(_mm_unpacklo_epi64(_mm_setzero_si128(), a2), bot32bitmask.v);
+	r5 = _mm_srli_epi64(_mm_unpacklo_epi64(_mm_setzero_si128(), a2), 32);
+
+	c1 = _mm_srli_epi64(r0, 26); c2 = _mm_srli_epi64(r2, 26); r0 = _mm_and_si128(r0, packedmask26.v); r2 = _mm_and_si128(r2, packedmask26.v); r1 = _mm_add_epi64(r1, c1); r3 = _mm_add_epi64(r3, c2);
+	c1 = _mm_srli_epi64(r1, 25); c2 = _mm_srli_epi64(r3, 25); r1 = _mm_and_si128(r1, packedmask25.v); r3 = _mm_and_si128(r3, packedmask25.v); r2 = _mm_add_epi64(r2, c1); r4 = _mm_add_epi64(r4, c2); c3 = _mm_slli_si128(c2, 8);
+	c1 = _mm_srli_epi64(r4, 26);                                                                      r4 = _mm_and_si128(r4, packedmask26.v);                             r5 = _mm_add_epi64(r5, c1); 
+	c1 = _mm_srli_epi64(r5, 25);                                                                      r5 = _mm_and_si128(r5, packedmask25.v);                             r0 = _mm_add_epi64(r0, _mm_unpackhi_epi64(_mm_mul_epu32(c1, packednineteen.v), c3));
+	c1 = _mm_srli_epi64(r0, 26); c2 = _mm_srli_epi64(r2, 26); r0 = _mm_and_si128(r0, packedmask26.v); r2 = _mm_and_si128(r2, packedmask26.v); r1 = _mm_add_epi64(r1, c1); r3 = _mm_add_epi64(r3, c2);
+
+	_mm_store_si128((xmmi*)out + 0, _mm_unpacklo_epi64(_mm_unpacklo_epi32(r0, r1), _mm_unpacklo_epi32(r2, r3)));
+	_mm_store_si128((xmmi*)out + 1, _mm_unpacklo_epi64(_mm_unpackhi_epi32(r0, r1), _mm_unpackhi_epi32(r2, r3)));
+	_mm_store_si128((xmmi*)out + 2, _mm_unpackhi_epi32(r4, r5));
+}
+
+
 /* Multiply two numbers: out = in2 * in */
 #define curve25519_mul_noinline curve25519_mul
 static void 
