@@ -170,14 +170,13 @@ curve25519_mul(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 	out[4] = r4;
 }
 
-static void
+static void DONNA_NOINLINE
 curve25519_mul_noinline(bignum25519 out, const bignum25519 in2, const bignum25519 in) {
 	curve25519_mul(out, in2, in);
 }
 
-
 /* out = in^(2 * count) */
-static void
+static void DONNA_NOINLINE
 curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 #if !defined(HAVE_NATIVE_UINT128)
 	uint128_t mul;
@@ -213,13 +212,18 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, uint64_t count) {
 		mul64x64_128(t[4], d0, r4) mul64x64_128(mul, d1, r3) add128(t[4], mul) mul64x64_128(mul, r2,      r2) add128(t[4], mul)
 #endif
 
-		                     r0 = lo128(t[0]) & reduce_mask_51; shr128(c, t[0], 51);
-		add128_64(t[1], c)   r1 = lo128(t[1]) & reduce_mask_51; shr128(c, t[1], 51);
-		add128_64(t[2], c)   r2 = lo128(t[2]) & reduce_mask_51; shr128(c, t[2], 51);
-		add128_64(t[3], c)   r3 = lo128(t[3]) & reduce_mask_51; shr128(c, t[3], 51);
-		add128_64(t[4], c)   r4 = lo128(t[4]) & reduce_mask_51; shr128(c, t[4], 51);
-		r0 +=   c * 19; c = r0 >> 51; r0 = r0 & reduce_mask_51;
-		r1 +=   c;
+		r0 = lo128(t[0]) & reduce_mask_51;
+		r1 = lo128(t[1]) & reduce_mask_51; shl128(c, t[0], 13); r1 += c;
+		r2 = lo128(t[2]) & reduce_mask_51; shl128(c, t[1], 13); r2 += c;
+		r3 = lo128(t[3]) & reduce_mask_51; shl128(c, t[2], 13); r3 += c;
+		r4 = lo128(t[4]) & reduce_mask_51; shl128(c, t[3], 13); r4 += c; 
+		                                   shl128(c, t[4], 13); r0 += c * 19;
+		               c = r0 >> 51; r0 &= reduce_mask_51;
+		r1 += c     ;  c = r1 >> 51; r1 &= reduce_mask_51;
+		r2 += c     ;  c = r2 >> 51; r2 &= reduce_mask_51;
+		r3 += c     ;  c = r3 >> 51; r3 &= reduce_mask_51;
+		r4 += c     ;  c = r4 >> 51; r4 &= reduce_mask_51;
+		r0 += c * 19;
 	} while(--count);
 
 	out[0] = r0;
