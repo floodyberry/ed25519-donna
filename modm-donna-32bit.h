@@ -278,7 +278,7 @@ expand_raw256_modm(bignum256modm out, const unsigned char in[32]) {
 	out[5] = ((x[ 4] >> 22) | (x[ 5] << 10)) & 0x3fffffff;
 	out[6] = ((x[ 5] >> 20) | (x[ 6] << 12)) & 0x3fffffff;
 	out[7] = ((x[ 6] >> 18) | (x[ 7] << 14)) & 0x3fffffff;
-	out[8] = ((x[ 7] >> 16)                ) & 0x00ffffff;
+	out[8] = ((x[ 7] >> 16)                ) & 0x0000ffff;
 }
 
 static void
