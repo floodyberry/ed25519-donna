@@ -401,39 +401,35 @@ sub256_modm_batch(bignum256modm out, const bignum256modm a, const bignum256modm 
 /* is a < b */
 static int
 lt256_modm_batch(const bignum256modm a, const bignum256modm b, size_t limbsize) {
-	size_t i = 0;
-	bignum256modm_element_t t, carry = 0;
 	switch (limbsize) {
-		case 8: t = (a[i] - b[i])        ; carry = (t >> 31); i++;
-		case 7: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 6: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 5: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 4: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 3: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 2: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 1: t = (a[i] - b[i]) - carry; carry = (t >> 31); i++;
-		case 0: t = (a[i] - b[i]) - carry; carry = (t >> 31);
+		case 8: if (a[8] > b[8]) return 0; if (a[8] < b[8]) return 1;
+		case 7: if (a[7] > b[7]) return 0; if (a[7] < b[7]) return 1;
+		case 6: if (a[6] > b[6]) return 0; if (a[6] < b[6]) return 1;
+		case 5: if (a[5] > b[5]) return 0; if (a[5] < b[5]) return 1;
+		case 4: if (a[4] > b[4]) return 0; if (a[4] < b[4]) return 1;
+		case 3: if (a[3] > b[3]) return 0; if (a[3] < b[3]) return 1;
+		case 2: if (a[2] > b[2]) return 0; if (a[2] < b[2]) return 1;
+		case 1: if (a[1] > b[1]) return 0; if (a[1] < b[1]) return 1;
+		case 0: if (a[0] > b[0]) return 0; if (a[0] < b[0]) return 1;
 	}
-	return (int)carry;
+	return 0;
 }
 
 /* is a <= b */
 static int
 lte256_modm_batch(const bignum256modm a, const bignum256modm b, size_t limbsize) {
-	size_t i = 0;
-	bignum256modm_element_t t, carry = 0;
 	switch (limbsize) {
-		case 8: t = (b[i] - a[i])        ; carry = (t >> 31); i++;
-		case 7: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 6: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 5: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 4: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 3: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 2: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 1: t = (b[i] - a[i]) - carry; carry = (t >> 31); i++;
-		case 0: t = (b[i] - a[i]) - carry; carry = (t >> 31);
+		case 8: if (a[8] > b[8]) return 0; if (a[8] < b[8]) return 1;
+		case 7: if (a[7] > b[7]) return 0; if (a[7] < b[7]) return 1;
+		case 6: if (a[6] > b[6]) return 0; if (a[6] < b[6]) return 1;
+		case 5: if (a[5] > b[5]) return 0; if (a[5] < b[5]) return 1;
+		case 4: if (a[4] > b[4]) return 0; if (a[4] < b[4]) return 1;
+		case 3: if (a[3] > b[3]) return 0; if (a[3] < b[3]) return 1;
+		case 2: if (a[2] > b[2]) return 0; if (a[2] < b[2]) return 1;
+		case 1: if (a[1] > b[1]) return 0; if (a[1] < b[1]) return 1;
+		case 0: if (a[0] > b[0]) return 0; if (a[0] < b[0]) return 1;
 	}
-	return (int)!carry;
+	return 1;
 }
 
 
