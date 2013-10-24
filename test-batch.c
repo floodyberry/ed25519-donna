@@ -123,7 +123,7 @@ test_batch(batch_test type, uint64_t *ticks) {
 }
 
 int
-main() {
+main(void) {
 	uint64_t dummy_ticks, ticks[test_batch_rounds], best = maxticks, sum;
 	size_t i, count;
 

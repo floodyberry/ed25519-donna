@@ -25,14 +25,16 @@ const curved25519_key curved25519_expected = {
 	0xac,0xce,0x24,0xb1,0xd4,0xa2,0x36,0x21,0x15,0xe2,0x3e,0x84,0x3c,0x23,0x2b,0x5f,0x95,0x6c,0xc0,0x7b,0x95,0x82,0xd7,0x93,0xd5,0x19,0xb6,0xf1,0xfb,0x96,0xd6,0x04
 };
 
-void edassert(int check, int round, const char *failreason) {
+static void
+edassert(int check, int round, const char *failreason) {
 	if (check)
 		return;
 	printf("round %d, %s\n", round, failreason);
 	exit(1);
 }
 
-void edassertequal(const unsigned char *a, const unsigned char *b, size_t len, int round, const char *failreason) {
+static void
+edassertequal(const unsigned char *a, const unsigned char *b, size_t len, int round, const char *failreason) {
 	size_t i;
 	if (memcmp(a, b, len) == 0)
 		return;
@@ -43,7 +45,8 @@ void edassertequal(const unsigned char *a, const unsigned char *b, size_t len, i
 	exit(1);
 }
 
-int main() {
+int
+main(void) {
 	int i, res;
 	ed25519_public_key pk;
 	ed25519_signature sig;
@@ -86,3 +89,4 @@ int main() {
 	printf("%.0f ticks/curve25519 basepoint scalarmult\n", (double)curvedticks);
 	return 0;
 }
+
