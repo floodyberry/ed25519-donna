@@ -11,13 +11,42 @@ extern unsigned char batch_point_buffer[3][32];
 
 /* y coordinate of the final point from 'amd64-51-30k' with the same random generator */
 static const unsigned char batch_verify_y[32] = {
+	0x51,0xe7,0x68,0xe0,0xf7,0xa1,0x88,0x45,
+	0xde,0xa1,0xcb,0xd9,0x37,0xd4,0x78,0x53,
+	0x1b,0x95,0xdb,0xbe,0x66,0x59,0x29,0x3b,
+	0x94,0x51,0x2f,0xbc,0x0d,0x66,0xba,0x3f
+};
+
+/*
+static const unsigned char batch_verify_y[32] = {
 	0x5c,0x63,0x96,0x26,0xca,0xfe,0xfd,0xc4,
 	0x2d,0x11,0xa8,0xe4,0xc4,0x46,0x42,0x97,
 	0x97,0x92,0xbe,0xe0,0x3c,0xef,0x96,0x01,
 	0x50,0xa1,0xcc,0x8f,0x50,0x85,0x76,0x7d
 };
 
-void edassertequal(const unsigned char *a, const unsigned char *b, size_t len, const char *failreason) {
+Introducing the 128 bit r scalars to the heap _before_ the largest scalar
+fits in to 128 bits alters the heap shape and produces a different,
+yet still neutral/valid y/z value.
+
+This was the value of introducing the r scalars when the largest scalar fit
+in to 135-256 bits. You can produce it with amd64-64-24k / amd64-51-32k
+with the random sequence used in the first pass by changing
+
+    unsigned long long hlen=((npoints+1)/2)|1;
+
+to
+
+    unsigned long long hlen=npoints;
+
+in ge25519_multi_scalarmult.c
+
+ed25519-donna-batchverify.h has been modified to match the 
+default amd64-64-24k / amd64-51-32k behaviour
+*/
+
+static void
+edassertequal(const unsigned char *a, const unsigned char *b, size_t len, const char *failreason) {
 	size_t i;
 	if (memcmp(a, b, len) == 0)
 		return;
@@ -35,7 +64,8 @@ typedef enum batch_test_t {
 	batch_wrong_sig = 3
 } batch_test;
 
-int test_batch(batch_test type, uint64_t *ticks) {
+static int
+test_batch(batch_test type, uint64_t *ticks) {
 	ed25519_secret_key sks[test_batch_count];
 	ed25519_public_key pks[test_batch_count];
 	ed25519_signature sigs[test_batch_count];
@@ -92,7 +122,8 @@ int test_batch(batch_test type, uint64_t *ticks) {
 	return ret;
 }
 
-int main() {
+int
+main() {
 	uint64_t dummy_ticks, ticks[test_batch_rounds], best = maxticks, sum;
 	size_t i, count;
 
@@ -122,3 +153,4 @@ int main() {
 	printf("%.0f ticks/verification\n", (double)sum / (count * test_batch_count));
 	return 0;
 }
+

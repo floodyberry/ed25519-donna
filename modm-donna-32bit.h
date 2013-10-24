@@ -458,3 +458,16 @@ isone256_modm_batch(const bignum256modm a) {
 			return 0;
 	return 1;
 }
+
+/* can a fit in to (at most) 128 bits */
+static int
+isatmost128bits256_modm_batch(const bignum256modm a) {
+	uint32_t mask =
+		((a[8]             )  | /*  16 */
+		 (a[7]             )  | /*  46 */
+		 (a[6]             )  | /*  76 */
+		 (a[5]             )  | /* 106 */
+		 (a[4] & 0x3fffff00));  /* 128 */
+
+	return (mask == 0);
+}

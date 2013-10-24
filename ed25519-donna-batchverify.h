@@ -155,6 +155,9 @@ ge25519_multi_scalarmult_vartime(ge25519 *r, batch_heap *heap, size_t count) {
 	/* start with the full limb size */
 	size_t limbsize = bignum256modm_limb_size - 1;
 
+	/* whether the heap has been extended to include the 128 bit scalars */
+	int extended = 0;
+
 	/* grab an odd number of scalars to build the heap, unknown limb sizes */
 	heap_build(heap, ((count + 1) / 2) | 1);
 
@@ -166,13 +169,14 @@ ge25519_multi_scalarmult_vartime(ge25519 *r, batch_heap *heap, size_t count) {
 			break;
 
 		/* exhausted another limb? */
-		if (!heap->scalars[max1][limbsize]) {
+		if (!heap->scalars[max1][limbsize])
 			limbsize -= 1;
-			/* extend to include the 128 bit r values */
-			if (limbsize == limb128bits) {
-				heap_extend(heap, count);
-				heap_get_top2(heap, &max1, &max2, limbsize);
-			}
+
+		/* can we extend to the 128 bit scalars? */
+		if (!extended && isatmost128bits256_modm_batch(heap->scalars[max1])) {
+			heap_extend(heap, count);
+			heap_get_top2(heap, &max1, &max2, limbsize);
+			extended = 1;
 		}
 
 		sub256_modm_batch(heap->scalars[max1], heap->scalars[max1], heap->scalars[max2], limbsize);
