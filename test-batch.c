@@ -71,7 +71,7 @@ test_batch(batch_test type, uint64_t *ticks) {
 	ed25519_signature sigs[test_batch_count];
 	unsigned char messages[test_batch_count][128];
 	size_t message_lengths[test_batch_count];
-	const unsigned char *message_pointers[128];
+	const unsigned char *message_pointers[test_batch_count];
 	const unsigned char *pk_pointers[test_batch_count];
 	const unsigned char *sig_pointers[test_batch_count];
 	int valid[test_batch_count], ret, validret;
