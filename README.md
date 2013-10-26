@@ -9,21 +9,41 @@ and [Bo-Yin Yang](http://www.iis.sinica.edu.tw/pages/byyang/).
 This project provides performant, portable 32-bit & 64-bit implementations. All implementations are 
 of course constant time in regard to secret data.
 
-#### Performance (On an E5200 @ 2.5ghz)
+#### Performance
 
-Batch verfication time (in parentheses) is the average time per 1 verification in a batch of 64 signatures. Counts are in thousands of cycles
+SSE2 code and benches have not been updated yet. I will do those next.
+
+Compilers versions are gcc 4.6.3, icc 13.1.1, clang 3.4-1~exp1.
+
+Batch verfication time (in parentheses) is the average time per 1 verification in a batch of 64 signatures. Counts are in thousands of cycles.
+
+Note that SSE2 performance may be less impressive on AMD & older CPUs with slower SSE ops!
+
+##### E5200 @ 2.5ghz
 
 <table>
 <thead><tr><th>Implementation</th><th>Sign</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
 <tbody>
-<tr><td>ed25519-donna 32bit</td><td></td><td>603k</td><td>373k</td><td>451k</td><td></td><td>1755k (755k)</td><td>1118k (488k)</td><td>1352k (566k)</td></tr>
-<tr><td>ed25519-donna 64bit</td><td></td><td>132k</td><td>129k</td><td>140k</td><td></td><td>374k (160k)</td><td>386k (170k)</td><td>408k (167k)</td></tr>
-<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>179k</td><td>155k</td><td>184k</td><td></td><td>395k (204k)</td><td>378k (197k)</td><td>490k (234k)</td></tr>
-<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>122k</td><td>114k</td><td>128k</td><td></td><td>372k (172k)</td><td>352k (173k)</td><td>412k (195k)</td></tr>
+<tr><td>ed25519-donna 64bit     </td><td></td><td>100k</td><td>110k</td><td>137k</td><td></td><td>327k (144k) </td><td>342k (163k) </td><td>422k (194k) </td></tr>
+<tr><td>amd64-64-24k            </td><td></td><td>102k</td><td>    </td><td>    </td><td></td><td>355k (158k) </td><td>            </td><td>            </td></tr>
+<tr><td>amd64-51-32k            </td><td></td><td>116k</td><td>    </td><td>    </td><td></td><td>380k (175k) </td><td>            </td><td>            </td></tr>
+<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>122k</td><td>114k</td><td>128k</td><td></td><td>372k (172k) </td><td>352k (173k) </td><td>412k (195k) </td></tr>
+<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>179k</td><td>155k</td><td>184k</td><td></td><td>395k (204k) </td><td>378k (197k) </td><td>490k (234k) </td></tr>
+<tr><td>ed25519-donna 32bit     </td><td></td><td>597k</td><td>335k</td><td>380k</td><td></td><td>1693k (720k)</td><td>1052k (453k)</td><td>1141k (493k)</td></tr>
 </tbody>
 </table>
 
-SSE2 performance may be less impressive on AMD & older CPUs with slower SSE ops!
+##### E3-1270 @ 3.4ghz
+
+<table>
+<thead><tr><th>Implementation</th><th>Sign</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
+<tbody>
+<tr><td>amd64-64-24k            </td><td></td><td> 68k</td><td>    </td><td>    </td><td></td><td>225k (104k) </td><td>            </td><td>            </td></tr>
+<tr><td>ed25519-donna 64bit     </td><td></td><td> 71k</td><td> 75k</td><td> 90k</td><td></td><td>226k (105k) </td><td>226k (112k) </td><td>277k (125k) </td></tr>
+<tr><td>amd64-51-32k            </td><td></td><td> 72k</td><td>    </td><td>    </td><td></td><td>218k (107k) </td><td>            </td><td>            </td></tr>
+<tr><td>ed25519-donna 32bit     </td><td></td><td>525k</td><td>299k</td><td>316k</td><td></td><td>1502k (645k)</td><td>959k (418k) </td><td>954k (416k) </td></tr>
+</tbody>
+</table>
 
 #### Compilation
 
@@ -33,9 +53,11 @@ No configuration is needed **if you are compiling against OpenSSL**.
 
 If you are not compiling aginst OpenSSL, you will need a hash function.
 
-To use a simple/**slow** implementation of SHA-512, use `-DED25519_REFHASH` when compiling ed25519.c. This should never be used except to verify the code works when OpenSSL is not available.
+To use a simple/**slow** implementation of SHA-512, use `-DED25519_REFHASH` when compiling `ed25519.c`. 
+This should never be used except to verify the code works when OpenSSL is not available.
 
-To use a custom hash function, use `-DED25519_CUSTOMHASH` when compiling ed25519.c and put your custom hash implementation in ed25519-hash-custom.h. The hash must have a 512bit digest and implement
+To use a custom hash function, use `-DED25519_CUSTOMHASH` when compiling `ed25519.c` and put your 
+custom hash implementation in ed25519-hash-custom.h. The hash must have a 512bit digest and implement
 
 	struct ed25519_hash_context;
 
@@ -43,6 +65,18 @@ To use a custom hash function, use `-DED25519_CUSTOMHASH` when compiling ed25519
 	void ed25519_hash_update(ed25519_hash_context *ctx, const uint8_t *in, size_t inlen);
 	void ed25519_hash_final(ed25519_hash_context *ctx, uint8_t *hash);
 	void ed25519_hash(uint8_t *hash, const uint8_t *in, size_t inlen);
+
+##### Random Options
+
+If you are not compiling aginst OpenSSL, you will need a random function for batch verification.
+
+To use a custom random function, use `-DED25519_CUSTOMRANDOM` when compiling `ed25519.c` and put your 
+custom hash implementation in ed25519-randombytes-custom.h. The random function must implement:
+
+	void ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len);
+
+Use `-DED25519_TEST` when compiling `ed25519.c` to use a deterministically seeded, non-thread safe CSPRNG 
+variant of Bob Jenkins [ISAAC](http://en.wikipedia.org/wiki/ISAAC_%28cipher%29)
 
 ##### 32-bit
 
@@ -101,11 +135,7 @@ To batch verify signatures:
 
 **Note**: Batch verification uses `ed25519_randombytes_unsafe`, implemented in 
 `ed25519-randombytes.h`, to generate random scalars for the verification code. 
-Currently this is implemented with a static RNG state that is initialized to the 
-same value on each run to test that the implementation is working. I don't have a 
-clean/portable method of implementing a thread-safe PRNG so if you use batch 
-verification seriously you will need to make sure the RNG is initialized with random data
-or use a separate source of randomness such as /dev/urandom.
+The default implementation now uses OpenSSLs `RAND_bytes`.
 
 Unlike the [SUPERCOP](http://bench.cr.yp.to/supercop.html) version, signatures are
 not appended to messages, and there is no need for padding in front of messages. 
@@ -129,7 +159,13 @@ signing due to both using the same code for the scalar multiply.
 
 #### Testing
 
-Testing/fuzzing against reference implemenations is now available. See [fuzz/README](fuzz/README.md).
+Fuzzing against reference implemenations is now available. See [fuzz/README](fuzz/README.md).
+
+Building `ed25519.c` with `-DED25519_TEST` and linking with `test.c` will run basic sanity tests
+and benchmark each function. `test-batch.c` has been incorporated in to `test.c`.
+
+`test-internals.c` is standalone and built the same way as `ed25519.c`. It tests the math primitives
+with extreme values to ensure they function correctly. SSE2 not supported (yet).
 
 #### Papers
 
