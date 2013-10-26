@@ -1,15 +1,4 @@
-#ifdef ED25519_OPENSSLRNG
-#include <openssl/rand.h>
-
-void
-ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
-
-  RAND_bytes(p, (int) len);
-
-}
-
-
-#else
+#if defined(ED25519_TEST)
 /*
 	ISAAC+ "variant", the paper is not clear on operator precedence and other
 	things. This is the "first in, first out" option!
@@ -84,5 +73,19 @@ ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
 	}
 
 	isaacp_random(&rng, p, len);
+}
+#elif defined(ED25519_CUSTOMRNG)
+
+#include "ed25519-randombytes-custom.h"
+
+#else
+
+#include <openssl/rand.h>
+
+void
+ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
+
+  RAND_bytes(p, (int) len);
+
 }
 #endif
