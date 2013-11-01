@@ -16,7 +16,7 @@
 	#if defined(ED25519_SSE2)
 	#else
 		#if defined(COMPILER_GCC) && defined(CPU_X86_64)
-		#define ED25519_GCC_64BIT_CHOOSE
+		#define ED25519_GCC_64BIT_X86_CHOOSE
 		#endif
 	#endif
 #endif
@@ -72,6 +72,8 @@ typedef struct ge25519_niels_t {
 typedef struct ge25519_pniels_t {
 	bignum25519 ysubx, xaddy, z, t2d;
 } ge25519_pniels;
+
+#include "ed25519-donna-basepoint-table.h"
 
 #if defined(HAVE_UINT128) && !defined(ED25519_SSE2)
 #include "ed25519-donna-64bit-tables.h"

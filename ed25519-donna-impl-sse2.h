@@ -338,12 +338,7 @@ ge25519_double_scalarmult_vartime(ge25519 *r, const ge25519 *p1, const bignum256
 	}
 }
 
-DONNA_INLINE static void
-ge25519_move_conditional_niels(ge25519_niels *a, const ge25519_niels *b, size_t flag) {
-	curve25519_move_conditional(a->ysubx, b->ysubx, flag);
-	curve25519_move_conditional(a->xaddy, b->xaddy, flag);
-	curve25519_move_conditional(a->t2d, b->t2d, flag);
-}
+#if !defined(HAVE_GE25519_SCALARMULT_BASE_CHOOSE_NIELS)
 
 static uint32_t
 ge25519_windowb_equal(uint32_t b, uint32_t c) {
@@ -351,26 +346,36 @@ ge25519_windowb_equal(uint32_t b, uint32_t c) {
 }
 
 static void
-ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const ge25519_niels table[256], uint32_t pos, signed char b) {
+ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const uint8_t table[256][96], uint32_t pos, signed char b) {
 	bignum25519 MM16 neg;
 	uint32_t sign = (uint32_t)((unsigned char)b >> 7);
 	uint32_t mask = ~(sign - 1);
 	uint32_t u = (b + mask) ^ mask;
 	uint32_t i;
-	memset(t, 0, sizeof(ge25519_niels));
-	t->xaddy[0] = 1;
-	t->ysubx[0] = 1;
+
+	/* ysubx, xaddy, t2d in packed form. initialize to ysubx = 1, xaddy = 1, t2d = 0 */
+	uint8_t MM16 packed[96] = {0};
+	packed[0] = 1;
+	packed[32] = 1;
 
 	for (i = 0; i < 8; i++)
-		ge25519_move_conditional_niels(t, &table[(pos*8) + i], ge25519_windowb_equal(u, i + 1));
+		curve25519_move_conditional_bytes(packed, table[(pos * 8) + i], ge25519_windowb_equal(u, i + 1));
 
+	/* expand in to t */
+	curve25519_expand(t->ysubx, packed +  0);
+	curve25519_expand(t->xaddy, packed + 32);
+	curve25519_expand(t->t2d  , packed + 64);
+
+	/* adjust for sign */
 	curve25519_swap_conditional(t->ysubx, t->xaddy, sign);
 	curve25519_neg(neg, t->t2d);
-	curve25519_move_conditional(t->t2d, neg, sign);
+	curve25519_swap_conditional(t->t2d, neg, sign);
 }
 
+#endif /* HAVE_GE25519_SCALARMULT_BASE_CHOOSE_NIELS */
+
 static void
-ge25519_scalarmult_base_niels(ge25519 *r, const ge25519_niels table[256], const bignum256modm s) {
+ge25519_scalarmult_base_niels(ge25519 *r, const uint8_t table[256][96], const bignum256modm s) {
 	signed char b[64];
 	uint32_t i;
 	ge25519_niels MM16 t;

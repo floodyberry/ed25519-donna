@@ -286,20 +286,36 @@ curve25519_square(bignum25519 out, const bignum25519 in) {
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
 DONNA_INLINE static void
 curve25519_expand(bignum25519 out, const unsigned char *in) {
-	uint64_t t;
-	unsigned i;
+	static const union { uint8_t b[2]; uint16_t s; } endian_check = {{1,0}};
+	uint64_t x0,x1,x2,x3;
 
-	#define read51full(n,start,shift) \
-		for (t = in[(start)] >> (shift), i = 0; i < (6 + ((shift)/6)); i++) \
-			t |= ((uint64_t)in[i+(start)+1] << ((i * 8) + (8 - (shift)))); \
-		out[n] = t & reduce_mask_51;
-	#define read51(n) read51full(n,(n*51)/8,(n*3)&7)
+	if (endian_check.s == 1) {
+		x0 = *(uint64_t *)(in + 0);
+		x1 = *(uint64_t *)(in + 8);
+		x2 = *(uint64_t *)(in + 16);
+		x3 = *(uint64_t *)(in + 24);
+	} else {
+		#define F(s)                         \
+			((((uint64_t)in[s + 0])      ) | \
+			 (((uint64_t)in[s + 1]) <<  8) | \
+			 (((uint64_t)in[s + 2]) << 16) | \
+			 (((uint64_t)in[s + 3]) << 24) | \
+			 (((uint64_t)in[s + 4]) << 32) | \
+			 (((uint64_t)in[s + 5]) << 40) | \
+			 (((uint64_t)in[s + 6]) << 48) | \
+			 (((uint64_t)in[s + 7]) << 56))
 
-	read51(0)
-	read51(1)
-	read51(2)
-	read51(3)
-	read51(4)
+		x0 = F(0);
+		x1 = F(8);
+		x2 = F(16);
+		x3 = F(24);
+	}
+
+	out[0] = x0 & reduce_mask_51; x0 = (x0 >> 51) | (x1 << 13);
+	out[1] = x0 & reduce_mask_51; x1 = (x1 >> 38) | (x2 << 26);
+	out[2] = x1 & reduce_mask_51; x2 = (x2 >> 25) | (x3 << 39);
+	out[3] = x2 & reduce_mask_51; x3 = (x3 >> 12);
+	out[4] = x3 & reduce_mask_51;
 }
 
 /* Take a fully reduced polynomial form number and contract it into a
@@ -360,13 +376,22 @@ curve25519_contract(unsigned char *out, const bignum25519 input) {
 
 /* out = (flag) ? in : out */
 DONNA_INLINE static void
-curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint64_t flag) {
+curve25519_move_conditional_bytes(uint8_t out[96], const uint8_t in[96], uint64_t flag) {
 	const uint64_t nb = flag - 1, b = ~nb;
-	out[0] = (out[0] & nb) | (in[0] & b);
-	out[1] = (out[1] & nb) | (in[1] & b);
-	out[2] = (out[2] & nb) | (in[2] & b);
-	out[3] = (out[3] & nb) | (in[3] & b);
-	out[4] = (out[4] & nb) | (in[4] & b);
+	const uint64_t *inq = (const uint64_t *)in;
+	uint64_t *outq = (uint64_t *)out;
+	outq[0] = (outq[0] & nb) | (inq[0] & b);
+	outq[1] = (outq[1] & nb) | (inq[1] & b);
+	outq[2] = (outq[2] & nb) | (inq[2] & b);
+	outq[3] = (outq[3] & nb) | (inq[3] & b);
+	outq[4] = (outq[4] & nb) | (inq[4] & b);
+	outq[5] = (outq[5] & nb) | (inq[5] & b);
+	outq[6] = (outq[6] & nb) | (inq[6] & b);
+	outq[7] = (outq[7] & nb) | (inq[7] & b);
+	outq[8] = (outq[8] & nb) | (inq[8] & b);
+	outq[9] = (outq[9] & nb) | (inq[9] & b);
+	outq[10] = (outq[10] & nb) | (inq[10] & b);
+	outq[11] = (outq[11] & nb) | (inq[11] & b);
 }
 
 /* if (iswap) swap(a, b) */

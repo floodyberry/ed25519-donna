@@ -401,24 +401,45 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, int count) {
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
 static void
 curve25519_expand(bignum25519 out, const unsigned char in[32]) {
-	#define F(n,start,shift,mask) \
-		out[n] = \
-			((((uint32_t) in[start + 0]) | \
-			((uint32_t) in[start + 1]) << 8 | \
-			((uint32_t) in[start + 2]) << 16 | \
-			((uint32_t) in[start + 3]) << 24) >> shift) & mask;
+	static const union { uint8_t b[2]; uint16_t s; } endian_check = {1,0};
+	uint32_t x0,x1,x2,x3,x4,x5,x6,x7;
 
-	F(0, 0, 0, reduce_mask_26);
-	F(1, 3, 2, reduce_mask_25);
-	F(2, 6, 3, reduce_mask_26);
-	F(3, 9, 5, reduce_mask_25);
-	F(4, 12, 6, reduce_mask_26);
-	F(5, 16, 0, reduce_mask_25);
-	F(6, 19, 1, reduce_mask_26);
-	F(7, 22, 3, reduce_mask_25);
-	F(8, 25, 4, reduce_mask_26);
-	F(9, 28, 6, reduce_mask_25);
-	#undef F
+	if (endian_check.s == 1) {
+		x0 = *(uint32_t *)(in + 0);
+		x1 = *(uint32_t *)(in + 4);
+		x2 = *(uint32_t *)(in + 8);
+		x3 = *(uint32_t *)(in + 12);
+		x4 = *(uint32_t *)(in + 16);
+		x5 = *(uint32_t *)(in + 20);
+		x6 = *(uint32_t *)(in + 24);
+		x7 = *(uint32_t *)(in + 28);
+    } else {
+		#define F(s)                         \
+			((((uint32_t)in[s + 0])      ) | \
+			 (((uint32_t)in[s + 1]) <<  8) | \
+			 (((uint32_t)in[s + 2]) << 16) | \
+			 (((uint32_t)in[s + 3]) << 24))
+		x0 = F(0);
+		x1 = F(4);
+		x2 = F(8);
+		x3 = F(12);
+		x4 = F(16);
+		x5 = F(20);
+		x6 = F(24);
+		x7 = F(28);
+		#undef F
+	}
+
+	out[0] = (                        x0       ) & 0x3ffffff;
+	out[1] = ((((uint64_t)x1 << 32) | x0) >> 26) & 0x1ffffff;
+	out[2] = ((((uint64_t)x2 << 32) | x1) >> 19) & 0x3ffffff;
+	out[3] = ((((uint64_t)x3 << 32) | x2) >> 13) & 0x1ffffff;
+	out[4] = ((                       x3) >>  6) & 0x3ffffff;
+	out[5] = (                        x4       ) & 0x1ffffff;
+	out[6] = ((((uint64_t)x5 << 32) | x4) >> 25) & 0x3ffffff;
+	out[7] = ((((uint64_t)x6 << 32) | x5) >> 19) & 0x1ffffff;
+	out[8] = ((((uint64_t)x7 << 32) | x6) >> 12) & 0x3ffffff;
+	out[9] = ((                       x7) >>  6) & 0x1ffffff;
 }
 
 /* Take a fully reduced polynomial form number and contract it into a
@@ -508,18 +529,35 @@ curve25519_contract(unsigned char out[32], const bignum25519 in) {
 
 /* out = (flag) ? in : out */
 DONNA_INLINE static void
-curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag) {
+curve25519_move_conditional_bytes(uint8_t out[96], const uint8_t in[96], uint32_t flag) {
 	const uint32_t nb = flag - 1, b = ~nb;
-	out[0] = (out[0] & nb) | (in[0] & b);
-	out[1] = (out[1] & nb) | (in[1] & b);
-	out[2] = (out[2] & nb) | (in[2] & b);
-	out[3] = (out[3] & nb) | (in[3] & b);
-	out[4] = (out[4] & nb) | (in[4] & b);
-	out[5] = (out[5] & nb) | (in[5] & b);
-	out[6] = (out[6] & nb) | (in[6] & b);
-	out[7] = (out[7] & nb) | (in[7] & b);
-	out[8] = (out[8] & nb) | (in[8] & b);
-	out[9] = (out[9] & nb) | (in[9] & b);
+	const uint32_t *inl = (const uint32_t *)in;
+	uint32_t *outl = (uint32_t *)out;
+	outl[0] = (outl[0] & nb) | (inl[0] & b);
+	outl[1] = (outl[1] & nb) | (inl[1] & b);
+	outl[2] = (outl[2] & nb) | (inl[2] & b);
+	outl[3] = (outl[3] & nb) | (inl[3] & b);
+	outl[4] = (outl[4] & nb) | (inl[4] & b);
+	outl[5] = (outl[5] & nb) | (inl[5] & b);
+	outl[6] = (outl[6] & nb) | (inl[6] & b);
+	outl[7] = (outl[7] & nb) | (inl[7] & b);
+	outl[8] = (outl[8] & nb) | (inl[8] & b);
+	outl[9] = (outl[9] & nb) | (inl[9] & b);
+	outl[10] = (outl[10] & nb) | (inl[10] & b);
+	outl[11] = (outl[11] & nb) | (inl[11] & b);
+	outl[12] = (outl[12] & nb) | (inl[12] & b);
+	outl[13] = (outl[13] & nb) | (inl[13] & b);
+	outl[14] = (outl[14] & nb) | (inl[14] & b);
+	outl[15] = (outl[15] & nb) | (inl[15] & b);
+	outl[16] = (outl[16] & nb) | (inl[16] & b);
+	outl[17] = (outl[17] & nb) | (inl[17] & b);
+	outl[18] = (outl[18] & nb) | (inl[18] & b);
+	outl[19] = (outl[19] & nb) | (inl[19] & b);
+	outl[20] = (outl[20] & nb) | (inl[20] & b);
+	outl[21] = (outl[21] & nb) | (inl[21] & b);
+	outl[22] = (outl[22] & nb) | (inl[22] & b);
+	outl[23] = (outl[23] & nb) | (inl[23] & b);
+
 }
 
 /* if (iswap) swap(a, b) */

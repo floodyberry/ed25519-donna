@@ -788,29 +788,30 @@ curve25519_square_packed64(packedelem64 *out, const packedelem64 *r) {
 }
 
 
-
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
 DONNA_INLINE static void
 curve25519_expand(bignum25519 out, const unsigned char in[32]) {
-	#define F(n,start,shift,mask) \
-		out[n] = \
-			((((uint32_t) in[start + 0]) | \
-			((uint32_t) in[start + 1]) << 8 | \
-			((uint32_t) in[start + 2]) << 16 | \
-			((uint32_t) in[start + 3]) << 24) >> shift) & mask;
+	uint32_t x0,x1,x2,x3,x4,x5,x6,x7;
 
-	F(0, 0, 0, 0x3ffffff);
-	F(1, 3, 2, 0x1ffffff);
-	F(2, 6, 3, 0x3ffffff);
-	F(3, 9, 5, 0x1ffffff);
-	F(4, 12, 6, 0x3ffffff);
-	F(5, 16, 0, 0x1ffffff);
-	F(6, 19, 1, 0x3ffffff);
-	F(7, 22, 3, 0x1ffffff);
-	F(8, 25, 4, 0x3ffffff);
-	F(9, 28, 6, 0x1ffffff);
-	#undef F
+	x0 = *(uint32_t *)(in + 0);
+	x1 = *(uint32_t *)(in + 4);
+	x2 = *(uint32_t *)(in + 8);
+	x3 = *(uint32_t *)(in + 12);
+	x4 = *(uint32_t *)(in + 16);
+	x5 = *(uint32_t *)(in + 20);
+	x6 = *(uint32_t *)(in + 24);
+	x7 = *(uint32_t *)(in + 28);
 
+	out[0] = (                        x0       ) & 0x3ffffff;
+	out[1] = ((((uint64_t)x1 << 32) | x0) >> 26) & 0x1ffffff;
+	out[2] = ((((uint64_t)x2 << 32) | x1) >> 19) & 0x3ffffff;
+	out[3] = ((((uint64_t)x3 << 32) | x2) >> 13) & 0x1ffffff;
+	out[4] = ((                       x3) >>  6) & 0x3ffffff;
+	out[5] = (                        x4       ) & 0x1ffffff;
+	out[6] = ((((uint64_t)x5 << 32) | x4) >> 25) & 0x3ffffff;
+	out[7] = ((((uint64_t)x6 << 32) | x5) >> 19) & 0x1ffffff;
+	out[8] = ((((uint64_t)x7 << 32) | x6) >> 12) & 0x3ffffff;
+	out[9] = ((                       x7) >>  6) & 0x1ffffff;
 	out[10] = 0;
 	out[11] = 0;
 }
@@ -935,8 +936,8 @@ curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint32_t iswap) {
 
 /* out = (flag) ? out : in */
 DONNA_INLINE static void
-curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag) {
-	xmmi a0,a1,a2,b0,b1,b2;
+curve25519_move_conditional_bytes(uint8_t out[96], const uint8_t in[96], uint32_t flag) {
+	xmmi a0,a1,a2,a3,a4,a5,b0,b1,b2,b3,b4,b5;
 	const uint32_t nb = flag - 1;
 	xmmi masknb = _mm_shuffle_epi32(_mm_cvtsi32_si128(nb),0);
 	a0 = _mm_load_si128((xmmi *)in + 0);
@@ -946,10 +947,10 @@ curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag
 	b1 = _mm_load_si128((xmmi *)out + 1);
 	b2 = _mm_load_si128((xmmi *)out + 2);
 	a0 = _mm_andnot_si128(masknb, a0);
-	b0 = _mm_and_si128(masknb, b0);
 	a1 = _mm_andnot_si128(masknb, a1);
-	b1 = _mm_and_si128(masknb, b1);
 	a2 = _mm_andnot_si128(masknb, a2);
+	b0 = _mm_and_si128(masknb, b0);
+	b1 = _mm_and_si128(masknb, b1);
 	b2 = _mm_and_si128(masknb, b2);
 	a0 = _mm_or_si128(a0, b0);
 	a1 = _mm_or_si128(a1, b1);
@@ -957,5 +958,24 @@ curve25519_move_conditional(bignum25519 out, const bignum25519 in, uint32_t flag
 	_mm_store_si128((xmmi*)out + 0, a0);
 	_mm_store_si128((xmmi*)out + 1, a1);
 	_mm_store_si128((xmmi*)out + 2, a2);
+
+	a3 = _mm_load_si128((xmmi *)in + 3);
+	a4 = _mm_load_si128((xmmi *)in + 4);
+	a5 = _mm_load_si128((xmmi *)in + 5);
+	b3 = _mm_load_si128((xmmi *)out + 3);
+	b4 = _mm_load_si128((xmmi *)out + 4);
+	b5 = _mm_load_si128((xmmi *)out + 5);
+	a3 = _mm_andnot_si128(masknb, a3);
+	a4 = _mm_andnot_si128(masknb, a4);
+	a5 = _mm_andnot_si128(masknb, a5);
+	b3 = _mm_and_si128(masknb, b3);
+	b4 = _mm_and_si128(masknb, b4);
+	b5 = _mm_and_si128(masknb, b5);
+	a3 = _mm_or_si128(a3, b3);
+	a4 = _mm_or_si128(a4, b4);
+	a5 = _mm_or_si128(a5, b5);
+	_mm_store_si128((xmmi*)out + 3, a3);
+	_mm_store_si128((xmmi*)out + 4, a4);
+	_mm_store_si128((xmmi*)out + 5, a5);
 }
 
