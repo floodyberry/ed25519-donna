@@ -162,7 +162,7 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 }
 
 
-static void DONNA_INLINE
+DONNA_INLINE static void
 curve25519_neg(bignum25519 out, const bignum25519 b) {
 	xmmi a0,a1,a2,b0,b1,b2;
 	xmmi c1,c2,c3;
