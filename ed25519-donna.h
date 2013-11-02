@@ -14,9 +14,14 @@
 #if !defined(ED25519_NO_INLINE_ASM)
 	/* detect extra features first so un-needed functions can be disabled throughout */
 	#if defined(ED25519_SSE2)
+		#if defined(COMPILER_GCC) && defined(CPU_X86)
+			#define ED25519_GCC_32BIT_SSE_CHOOSE
+		#elif defined(COMPILER_GCC) && defined(CPU_X86_64)
+			#define ED25519_GCC_64BIT_SSE_CHOOSE
+		#endif
 	#else
 		#if defined(COMPILER_GCC) && defined(CPU_X86_64)
-		#define ED25519_GCC_64BIT_X86_CHOOSE
+			#define ED25519_GCC_64BIT_X86_CHOOSE
 		#endif
 	#endif
 #endif
@@ -84,6 +89,8 @@ typedef struct ge25519_pniels_t {
 
 
 #if defined(ED25519_SSE2)
+#include "ed25519-donna-32bit-sse2.h"
+#include "ed25519-donna-64bit-sse2.h"
 #include "ed25519-donna-impl-sse2.h"
 #else
 #include "ed25519-donna-impl-base.h"
