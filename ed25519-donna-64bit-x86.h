@@ -340,7 +340,7 @@ ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const uint8_t table[256][
 		"movq %%rdi, 112(%2)             ;\n"
 		:
 		: "m"(u), "r"(&table[pos * 8]), "r"(t), "m"(sign) /* %0 = u, %1 = table, %2 = t, %3 = sign */
-		: "%rax", "%rcx", "%rdi", "%rsi", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13"
+		: "%rax", "%rcx", "%rdx", "%rdi", "%rsi", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13"
 	);
 }
 
