@@ -24,7 +24,7 @@
 #endif
 
 /* uint128_t */
-#if defined(CPU_64BITS)
+#if defined(CPU_64BITS) && !defined(ED25519_FORCE_32BIT)
 	#if defined(COMPILER_CLANG) && (COMPILER_CLANG >= 30100)
 		#define HAVE_NATIVE_UINT128
 		typedef unsigned __int128 uint128_t;
@@ -94,7 +94,7 @@ static inline void U32TO8_LE(unsigned char *p, const uint32_t v) {
 }
 #endif
 
-#if !defined(HAVE_UINT128)
+//#if !defined(HAVE_UINT128)
 static inline uint32_t U8TO32_LE(const unsigned char *p) {
 	return
 	(((uint32_t)(p[0])      ) | 
@@ -102,7 +102,7 @@ static inline uint32_t U8TO32_LE(const unsigned char *p) {
 	 ((uint32_t)(p[2]) << 16) |
 	 ((uint32_t)(p[3]) << 24));
 }
-#else
+//#else
 static inline uint64_t U8TO64_LE(const unsigned char *p) {
 	return
 	(((uint64_t)(p[0])      ) |
@@ -125,7 +125,7 @@ static inline void U64TO8_LE(unsigned char *p, const uint64_t v) {
 	p[6] = (unsigned char)(v >> 48);
 	p[7] = (unsigned char)(v >> 56);
 }
-#endif
+//#endif
 
 #include <stdlib.h>
 #include <string.h>
