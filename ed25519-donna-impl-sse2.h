@@ -2,14 +2,7 @@
 	conversions
 */
 
-DONNA_INLINE static void
-ge25519_p1p1_to_partial_slow(ge25519 *r, const ge25519_p1p1 *p) {
-	curve25519_mul(r->x, p->x, p->t);
-	curve25519_mul(r->y, p->y, p->z);
-	curve25519_mul(r->z, p->z, p->t);
-}
-
-DONNA_INLINE static void
+static void
 ge25519_p1p1_to_partial(ge25519 *r, const ge25519_p1p1 *p) {
 	packed64bignum25519 MM16 xz, tt, xzout;
 	curve25519_mul(r->y, p->y, p->z);
@@ -17,14 +10,6 @@ ge25519_p1p1_to_partial(ge25519 *r, const ge25519_p1p1 *p) {
 	curve25519_tangleone64(tt, p->t);
 	curve25519_mul_packed64(xzout, xz, tt);
 	curve25519_untangle64(r->x, r->z, xzout);
-}
-
-static void 
-ge25519_p1p1_to_full_slow(ge25519 *r, const ge25519_p1p1 *p) {
-	curve25519_mul(r->x, p->x, p->t);
-	curve25519_mul(r->y, p->y, p->z);
-	curve25519_mul(r->z, p->z, p->t);
-	curve25519_mul(r->t, p->x, p->y);
 }
 
 static void 
@@ -41,10 +26,8 @@ ge25519_p1p1_to_full(ge25519 *r, const ge25519_p1p1 *p) {
 
 static void
 ge25519_full_to_pniels(ge25519_pniels *p, const ge25519 *r) {
-	curve25519_copy(p->ysubx, r->y);
-	curve25519_sub(p->ysubx, p->ysubx, r->x);
-	curve25519_copy(p->xaddy, r->x);
-	curve25519_add(p->xaddy, p->xaddy, r->y);
+	curve25519_sub(p->ysubx, r->y, r->x);
+	curve25519_add(p->xaddy, r->x, r->y);
 	curve25519_copy(p->z, r->z);
 	curve25519_mul(p->t2d, r->t, ge25519_ec2d);
 }
@@ -72,6 +55,7 @@ ge25519_add_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519 *q) {
 	curve25519_untangle64(c, d, cd);
 	curve25519_mul(c, c, ge25519_ec2d);
 	curve25519_add_reduce(d, d, d);
+	/* reduce, so no after_basic is needed later */
 	curve25519_tangle32(bd, b, d);
 	curve25519_tangle32(ac, a, c);
 	curve25519_sub_packed32(bdmac, bd, ac);
@@ -85,7 +69,7 @@ static void
 ge25519_double_p1p1(ge25519_p1p1 *r, const ge25519 *p) {
 	bignum25519 MM16 a,b,c,x;
 	packed64bignum25519 MM16 xy, zx, ab, cx;
-	packed32bignum25519 MM16 bx, ay, yc, ac, bc, zx32;
+	packed32bignum25519 MM16 xc, yz, xt, yc, ac, bc;
 
 	curve25519_add(x, p->x, p->y);
 	curve25519_tangle64(xy, p->x, p->y);
@@ -98,11 +82,11 @@ ge25519_double_p1p1(ge25519_p1p1 *r, const ge25519 *p) {
 	curve25519_tangle32(ac, a, c);
 	curve25519_add_reduce_packed32(yc, bc, ac);
 	curve25519_untangle32(r->y, c, yc);
-	curve25519_tangle32(bx, b, x);
-	curve25519_tangle32(ay, a, r->y);
-	curve25519_sub_packed32(zx32, bx, ay);
-	curve25519_untangle32(r->z, r->x, zx32);
-	curve25519_sub(r->t, c, r->z);
+	curve25519_sub(r->z, b, a);
+	curve25519_tangle32(yz, r->y, r->z);
+	curve25519_tangle32(xc, x, c);
+	curve25519_sub_after_basic_packed32(xt, xc, yz);
+	curve25519_untangle32(r->x, r->t, xt);
 }
 
 static void
@@ -162,21 +146,21 @@ static void
 ge25519_double(ge25519 *r, const ge25519 *p) {
 	ge25519_p1p1 MM16 t;
 	ge25519_double_p1p1(&t, p);
-	ge25519_p1p1_to_full_slow(r, &t);
+	ge25519_p1p1_to_full(r, &t);
 }
 
 static void
 ge25519_add(ge25519 *r, const ge25519 *p, const ge25519 *q) {
 	ge25519_p1p1 MM16 t;
 	ge25519_add_p1p1(&t, p, q);
-	ge25519_p1p1_to_full_slow(r, &t);
+	ge25519_p1p1_to_full(r, &t);
 }
 
 static void
 ge25519_double_partial(ge25519 *r, const ge25519 *p) {
 	ge25519_p1p1 MM16 t;
 	ge25519_double_p1p1(&t, p);
-	ge25519_p1p1_to_partial_slow(r, &t);
+	ge25519_p1p1_to_partial(r, &t);
 }
 
 static void
@@ -194,10 +178,10 @@ ge25519_nielsadd2(ge25519 *r, const ge25519_niels *q) {
 	curve25519_add(h, b, a);
 	curve25519_add_reduce(d, r->z, r->z);
 	curve25519_mul(c, r->t, q->t2d);
-	curve25519_add(g, d, c);
+	curve25519_add(g, d, c); /* d is reduced, so no need for after_basic */
 	curve25519_tangle32(bd, b, d);
 	curve25519_tangle32(ac, a, c);
-	curve25519_sub_packed32(bdac, bd, ac);
+	curve25519_sub_packed32(bdac, bd, ac); /* d is reduced, so no need for after_basic */
 	curve25519_untangle32(e, f, bdac);
 	curve25519_tangle64(eg, e, g);
 	curve25519_tangleone64(ff, f);

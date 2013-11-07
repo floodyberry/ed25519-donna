@@ -51,13 +51,20 @@ static const packedelem64 MM16 packed9638 = {{19*4,19*2}};
 static const packedelem64 packed121666121665 = {{121666, 121665}};
 
 /* 2*(2^255 - 19) = 0 mod p */
-const packedelem32 MM16 zeromodp0 = {{0x7ffffda,0x3fffffe,0x7fffffe,0x3fffffe}};
-const packedelem32 MM16 zeromodp1 = {{0x7fffffe,0x3fffffe,0x7fffffe,0x3fffffe}};
-const packedelem32 MM16 zeromodp2 = {{0x7fffffe,0x3fffffe,0,0}};
+static const packedelem32 MM16 packed2p0 = {{0x7ffffda,0x3fffffe,0x7fffffe,0x3fffffe}};
+static const packedelem32 MM16 packed2p1 = {{0x7fffffe,0x3fffffe,0x7fffffe,0x3fffffe}};
+static const packedelem32 MM16 packed2p2 = {{0x7fffffe,0x3fffffe,0x0000000,0x0000000}};
 
-/* 2*(2^255 - 19) = 0 mod p */
-static const packedelem32 MM16 packed32zeromodp0 = {{0x7ffffda,0x7ffffda,0x3fffffe,0x3fffffe}};
-static const packedelem32 MM16 packed32zeromodp1 = {{0x7fffffe,0x7fffffe,0x3fffffe,0x3fffffe}};
+static const packedelem32 MM16 packed32packed2p0 = {{0x7ffffda,0x7ffffda,0x3fffffe,0x3fffffe}};
+static const packedelem32 MM16 packed32packed2p1 = {{0x7fffffe,0x7fffffe,0x3fffffe,0x3fffffe}};
+
+/* 4*(2^255 - 19) = 0 mod p */
+static const packedelem32 MM16 packed4p0 = {{0xfffffb4,0x7fffffc,0xffffffc,0x7fffffc}};
+static const packedelem32 MM16 packed4p1 = {{0xffffffc,0x7fffffc,0xffffffc,0x7fffffc}};
+static const packedelem32 MM16 packed4p2 = {{0xffffffc,0x7fffffc,0x0000000,0x0000000}};
+
+static const packedelem32 MM16 packed32packed4p0 = {{0xfffffb4,0xfffffb4,0x7fffffc,0x7fffffc}};
+static const packedelem32 MM16 packed32packed4p1 = {{0xffffffc,0xffffffc,0x7fffffc,0x7fffffc}};
 
 /* out = in */
 DONNA_INLINE static void
@@ -89,6 +96,7 @@ curve25519_add(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	_mm_store_si128((xmmi*)out + 2, a2);
 }
 
+#define curve25519_add_after_basic curve25519_add_reduce
 DONNA_INLINE static void
 curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	xmmi a0,a1,a2,b0,b1,b2;
@@ -123,9 +131,45 @@ curve25519_add_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b)
 	_mm_store_si128((xmmi*)out + 2, _mm_unpackhi_epi32(r4, r5));
 }
 
-#define curve25519_sub_reduce curve25519_sub
 DONNA_INLINE static void
 curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	xmmi a0,a1,a2,b0,b1,b2;
+	xmmi c1,c2;
+	xmmi r0,r1;
+
+	a0 = _mm_load_si128((xmmi*)a + 0);
+	a1 = _mm_load_si128((xmmi*)a + 1);
+	a2 = _mm_load_si128((xmmi*)a + 2);
+	a0 = _mm_add_epi32(a0, packed2p0.v);
+	a1 = _mm_add_epi32(a1, packed2p1.v);
+	a2 = _mm_add_epi32(a2, packed2p2.v);
+	b0 = _mm_load_si128((xmmi*)b + 0);
+	b1 = _mm_load_si128((xmmi*)b + 1);
+	b2 = _mm_load_si128((xmmi*)b + 2);
+	a0 = _mm_sub_epi32(a0, b0);
+	a1 = _mm_sub_epi32(a1, b1);
+	a2 = _mm_sub_epi32(a2, b2);
+
+	r0 = _mm_and_si128(_mm_shuffle_epi32(a0, _MM_SHUFFLE(2,2,0,0)), bot32bitmask.v);
+	r1 = _mm_and_si128(_mm_shuffle_epi32(a0, _MM_SHUFFLE(3,3,1,1)), bot32bitmask.v);
+
+	c1 = _mm_srli_epi32(r0, 26); 
+	c2 = _mm_srli_epi32(r1, 25); 
+	r0 = _mm_and_si128(r0, packedmask26.v); 
+	r1 = _mm_and_si128(r1, packedmask25.v); 
+	r0 = _mm_add_epi32(r0, _mm_slli_si128(c2, 8));
+	r1 = _mm_add_epi32(r1, c1);
+
+	a0 = _mm_unpacklo_epi64(_mm_unpacklo_epi32(r0, r1), _mm_unpackhi_epi32(r0, r1));
+	a1 = _mm_add_epi32(a1, _mm_srli_si128(c2, 8));
+
+	_mm_store_si128((xmmi*)out + 0, a0);
+	_mm_store_si128((xmmi*)out + 1, a1);
+	_mm_store_si128((xmmi*)out + 2, a2);
+}
+
+DONNA_INLINE static void
+curve25519_sub_after_basic(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	xmmi a0,a1,a2,b0,b1,b2;
 	xmmi c1,c2,c3;
 	xmmi r0,r1,r2,r3,r4,r5;
@@ -133,9 +177,46 @@ curve25519_sub(bignum25519 out, const bignum25519 a, const bignum25519 b) {
 	a0 = _mm_load_si128((xmmi*)a + 0);
 	a1 = _mm_load_si128((xmmi*)a + 1);
 	a2 = _mm_load_si128((xmmi*)a + 2);
-	a0 = _mm_add_epi32(a0, zeromodp0.v);
-	a1 = _mm_add_epi32(a1, zeromodp1.v);
-	a2 = _mm_add_epi32(a2, zeromodp2.v);
+	a0 = _mm_add_epi32(a0, packed4p0.v);
+	a1 = _mm_add_epi32(a1, packed4p1.v);
+	a2 = _mm_add_epi32(a2, packed4p2.v);
+	b0 = _mm_load_si128((xmmi*)b + 0);
+	b1 = _mm_load_si128((xmmi*)b + 1);
+	b2 = _mm_load_si128((xmmi*)b + 2);
+	a0 = _mm_sub_epi32(a0, b0);
+	a1 = _mm_sub_epi32(a1, b1);
+	a2 = _mm_sub_epi32(a2, b2);
+
+	r0 = _mm_and_si128(_mm_unpacklo_epi64(a0, a1), bot32bitmask.v);
+	r1 = _mm_srli_epi64(_mm_unpacklo_epi64(a0, a1), 32);
+	r2 = _mm_and_si128(_mm_unpackhi_epi64(a0, a1), bot32bitmask.v);
+	r3 = _mm_srli_epi64(_mm_unpackhi_epi64(a0, a1), 32);
+	r4 = _mm_and_si128(_mm_unpacklo_epi64(_mm_setzero_si128(), a2), bot32bitmask.v);
+	r5 = _mm_srli_epi64(_mm_unpacklo_epi64(_mm_setzero_si128(), a2), 32);
+
+	c1 = _mm_srli_epi64(r0, 26); c2 = _mm_srli_epi64(r2, 26); r0 = _mm_and_si128(r0, packedmask26.v); r2 = _mm_and_si128(r2, packedmask26.v); r1 = _mm_add_epi64(r1, c1); r3 = _mm_add_epi64(r3, c2);
+	c1 = _mm_srli_epi64(r1, 25); c2 = _mm_srli_epi64(r3, 25); r1 = _mm_and_si128(r1, packedmask25.v); r3 = _mm_and_si128(r3, packedmask25.v); r2 = _mm_add_epi64(r2, c1); r4 = _mm_add_epi64(r4, c2); c3 = _mm_slli_si128(c2, 8);
+	c1 = _mm_srli_epi64(r4, 26);                                                                      r4 = _mm_and_si128(r4, packedmask26.v);                             r5 = _mm_add_epi64(r5, c1); 
+	c1 = _mm_srli_epi64(r5, 25);                                                                      r5 = _mm_and_si128(r5, packedmask25.v);                             r0 = _mm_add_epi64(r0, _mm_unpackhi_epi64(_mm_mul_epu32(c1, packednineteen.v), c3));
+	c1 = _mm_srli_epi64(r0, 26); c2 = _mm_srli_epi64(r2, 26); r0 = _mm_and_si128(r0, packedmask26.v); r2 = _mm_and_si128(r2, packedmask26.v); r1 = _mm_add_epi64(r1, c1); r3 = _mm_add_epi64(r3, c2);
+
+	_mm_store_si128((xmmi*)out + 0, _mm_unpacklo_epi64(_mm_unpacklo_epi32(r0, r1), _mm_unpacklo_epi32(r2, r3)));
+	_mm_store_si128((xmmi*)out + 1, _mm_unpacklo_epi64(_mm_unpackhi_epi32(r0, r1), _mm_unpackhi_epi32(r2, r3)));
+	_mm_store_si128((xmmi*)out + 2, _mm_unpackhi_epi32(r4, r5));
+}
+
+DONNA_INLINE static void
+curve25519_sub_reduce(bignum25519 out, const bignum25519 a, const bignum25519 b) {
+	xmmi a0,a1,a2,b0,b1,b2;
+	xmmi c1,c2,c3;
+	xmmi r0,r1,r2,r3,r4,r5;
+
+	a0 = _mm_load_si128((xmmi*)a + 0);
+	a1 = _mm_load_si128((xmmi*)a + 1);
+	a2 = _mm_load_si128((xmmi*)a + 2);
+	a0 = _mm_add_epi32(a0, packed2p0.v);
+	a1 = _mm_add_epi32(a1, packed2p1.v);
+	a2 = _mm_add_epi32(a2, packed2p2.v);
 	b0 = _mm_load_si128((xmmi*)b + 0);
 	b1 = _mm_load_si128((xmmi*)b + 1);
 	b2 = _mm_load_si128((xmmi*)b + 2);
@@ -168,9 +249,9 @@ curve25519_neg(bignum25519 out, const bignum25519 b) {
 	xmmi c1,c2,c3;
 	xmmi r0,r1,r2,r3,r4,r5;
 
-	a0 = zeromodp0.v;
-	a1 = zeromodp1.v;
-	a2 = zeromodp2.v;
+	a0 = packed2p0.v;
+	a1 = packed2p1.v;
+	a2 = packed2p2.v;
 	b0 = _mm_load_si128((xmmi*)b + 0);
 	b1 = _mm_load_si128((xmmi*)b + 1);
 	b2 = _mm_load_si128((xmmi*)b + 2);
@@ -198,7 +279,6 @@ curve25519_neg(bignum25519 out, const bignum25519 b) {
 
 
 /* Multiply two numbers: out = in2 * in */
-#define curve25519_mul_noinline curve25519_mul
 static void 
 curve25519_mul(bignum25519 out, const bignum25519 r, const bignum25519 s) {
 	xmmi m01,m23,m45,m67,m89;
@@ -341,6 +421,11 @@ curve25519_mul(bignum25519 out, const bignum25519 r, const bignum25519 s) {
 	_mm_store_si128((xmmi*)out + 0, m0123);
 	_mm_store_si128((xmmi*)out + 1, m4567);
 	_mm_store_si128((xmmi*)out + 2, m89);
+}
+
+DONNA_NOINLINE static void
+curve25519_mul_noinline(bignum25519 out, const bignum25519 r, const bignum25519 s) {
+	curve25519_mul(out, r, s);
 }
 
 #define curve25519_square(r, n) curve25519_square_times(r, n, 1)
@@ -549,14 +634,46 @@ curve25519_add_packed32(packedelem32 *out, const packedelem32 *r, const packedel
 DONNA_INLINE static void
 curve25519_sub_packed32(packedelem32 *out, const packedelem32 *r, const packedelem32 *s) {
 	xmmi r0,r1,r2,r3,r4;
+	xmmi s0,s1,s2,s3;
+	xmmi c1,c2;
+
+	r0 = _mm_add_epi32(r[0].v, packed32packed2p0.v);
+	r1 = _mm_add_epi32(r[1].v, packed32packed2p1.v);
+	r2 = _mm_add_epi32(r[2].v, packed32packed2p1.v);
+	r3 = _mm_add_epi32(r[3].v, packed32packed2p1.v);
+	r4 = _mm_add_epi32(r[4].v, packed32packed2p1.v);
+	r0 = _mm_sub_epi32(r0, s[0].v); /* 00 11 */
+	r1 = _mm_sub_epi32(r1, s[1].v); /* 22 33 */
+	r2 = _mm_sub_epi32(r2, s[2].v); /* 44 55 */
+	r3 = _mm_sub_epi32(r3, s[3].v); /* 66 77 */
+	r4 = _mm_sub_epi32(r4, s[4].v); /* 88 99 */
+
+	s0 = _mm_unpacklo_epi64(r0, r2); /* 00 44 */
+	s1 = _mm_unpackhi_epi64(r0, r2); /* 11 55 */
+	s2 = _mm_unpacklo_epi64(r1, r3); /* 22 66 */
+	s3 = _mm_unpackhi_epi64(r1, r3); /* 33 77 */
+
+	c1 = _mm_srli_epi32(s0, 26); c2 = _mm_srli_epi32(s2, 26); s0 = _mm_and_si128(s0, packedmask26262626.v); s2 = _mm_and_si128(s2, packedmask26262626.v); s1 = _mm_add_epi32(s1, c1); s3 = _mm_add_epi32(s3, c2);
+	c1 = _mm_srli_epi32(s1, 25); c2 = _mm_srli_epi32(s3, 25); s1 = _mm_and_si128(s1, packedmask25252525.v); s3 = _mm_and_si128(s3, packedmask25252525.v); s2 = _mm_add_epi32(s2, c1); r4 = _mm_add_epi32(r4, _mm_srli_si128(c2, 8)); s0 = _mm_add_epi32(s0,  _mm_slli_si128(c2, 8));
+
+	out[0].v = _mm_unpacklo_epi64(s0, s1); /* 00 11 */
+	out[1].v = _mm_unpacklo_epi64(s2, s3); /* 22 33 */
+	out[2].v = _mm_unpackhi_epi64(s0, s1); /* 44 55 */
+	out[3].v = _mm_unpackhi_epi64(s2, s3); /* 66 77 */
+	out[4].v = r4;
+}
+
+DONNA_INLINE static void
+curve25519_sub_after_basic_packed32(packedelem32 *out, const packedelem32 *r, const packedelem32 *s) {
+	xmmi r0,r1,r2,r3,r4;
 	xmmi s0,s1,s2,s3,s4,s5;
 	xmmi c1,c2;
 
-	r0 = _mm_add_epi32(r[0].v, packed32zeromodp0.v);
-	r1 = _mm_add_epi32(r[1].v, packed32zeromodp1.v);
-	r2 = _mm_add_epi32(r[2].v, packed32zeromodp1.v);
-	r3 = _mm_add_epi32(r[3].v, packed32zeromodp1.v);
-	r4 = _mm_add_epi32(r[4].v, packed32zeromodp1.v);
+	r0 = _mm_add_epi32(r[0].v, packed32packed4p0.v);
+	r1 = _mm_add_epi32(r[1].v, packed32packed4p1.v);
+	r2 = _mm_add_epi32(r[2].v, packed32packed4p1.v);
+	r3 = _mm_add_epi32(r[3].v, packed32packed4p1.v);
+	r4 = _mm_add_epi32(r[4].v, packed32packed4p1.v);
 	r0 = _mm_sub_epi32(r0, s[0].v); /* 00 11 */
 	r1 = _mm_sub_epi32(r1, s[1].v); /* 22 33 */
 	r2 = _mm_sub_epi32(r2, s[2].v); /* 44 55 */
@@ -662,6 +779,20 @@ curve25519_tangleone64(packedelem64 *out, const bignum25519 x) {
 	out[7].v = _mm_shuffle_epi32(x1, _MM_SHUFFLE(3,3,3,3));
 	out[8].v = _mm_shuffle_epi32(x2, _MM_SHUFFLE(0,0,0,0));
 	out[9].v = _mm_shuffle_epi32(x2, _MM_SHUFFLE(1,1,1,1));
+}
+
+DONNA_INLINE static void
+curve25519_swap64(packedelem64 *out) {
+	out[0].v = _mm_shuffle_epi32(out[0].v, _MM_SHUFFLE(1,0,3,2));
+	out[1].v = _mm_shuffle_epi32(out[1].v, _MM_SHUFFLE(1,0,3,2));
+	out[2].v = _mm_shuffle_epi32(out[2].v, _MM_SHUFFLE(1,0,3,2));
+	out[3].v = _mm_shuffle_epi32(out[3].v, _MM_SHUFFLE(1,0,3,2));
+	out[4].v = _mm_shuffle_epi32(out[4].v, _MM_SHUFFLE(1,0,3,2));
+	out[5].v = _mm_shuffle_epi32(out[5].v, _MM_SHUFFLE(1,0,3,2));
+	out[6].v = _mm_shuffle_epi32(out[6].v, _MM_SHUFFLE(1,0,3,2));
+	out[7].v = _mm_shuffle_epi32(out[7].v, _MM_SHUFFLE(1,0,3,2));
+	out[8].v = _mm_shuffle_epi32(out[8].v, _MM_SHUFFLE(1,0,3,2));
+	out[9].v = _mm_shuffle_epi32(out[9].v, _MM_SHUFFLE(1,0,3,2));
 }
 
 DONNA_INLINE static void
@@ -789,7 +920,7 @@ curve25519_square_packed64(packedelem64 *out, const packedelem64 *r) {
 
 
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
-DONNA_INLINE static void
+static void
 curve25519_expand(bignum25519 out, const unsigned char in[32]) {
 	uint32_t x0,x1,x2,x3,x4,x5,x6,x7;
 
@@ -819,7 +950,7 @@ curve25519_expand(bignum25519 out, const unsigned char in[32]) {
 /* Take a fully reduced polynomial form number and contract it into a
  * little-endian, 32-byte array
  */
-DONNA_INLINE static void
+static void
 curve25519_contract(unsigned char out[32], const bignum25519 in) {
 	MM16 bignum25519 f;
 	curve25519_copy(f, in);
