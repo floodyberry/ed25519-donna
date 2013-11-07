@@ -104,7 +104,7 @@
 	$ret = 0;
 
 	if ($with_openssl->set) $link .= " -lssl -lcrypto";
-	if (!$with_openssl->set) $flags .= " -DED25519_REFHASH";
+	if (!$with_openssl->set) $flags .= " -DED25519_REFHASH -DED25519_TEST";
 	if ($no_asm->set) $flags .= " -DED25519_NO_INLINE_ASM";
 
 	if ($function->value === "curve25519") {
