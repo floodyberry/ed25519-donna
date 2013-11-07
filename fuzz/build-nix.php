@@ -5,7 +5,15 @@
 	}
 
 	function usage($reason) {
-		echoln("php build-nix.php --function=[curve25519,ed25519] --bits=[32,64] (--with-sse2 --with-openssl --compiler=[gcc,clang,icc]) ");
+		echoln("Usage: php build-nix.php [flags]");
+		echoln("Flags in parantheses are optional");
+		echoln("");
+		echoln("  --bits=[32,64]");
+		echoln("  --function=[curve25519,ed25519]");
+		echoln(" (--compiler=[*gcc,clang,icc])        which compiler to use, gcc is default");
+		echoln(" (--with-openssl)                     use openssl for SHA512");
+		echoln(" (--with-sse2)                        additionally fuzz against SSE2");
+		echoln(" (--no-asm)                           don't use platform specific asm");
 		echoln("");
 		if ($reason)
 			echoln($reason);
@@ -77,6 +85,7 @@
 	$compiler = new multiargument("compiler", array("gcc", "clang", "icc"));
 	$with_sse2 = new flag("with-sse2");
 	$with_openssl = new flag("with-openssl");
+	$no_asm = new flag("no-asm");
 
 	$err = "";
 	if (!$bits->set)
@@ -96,6 +105,7 @@
 
 	if ($with_openssl->set) $link .= " -lssl -lcrypto";
 	if (!$with_openssl->set) $flags .= " -DED25519_REFHASH";
+	if ($no_asm->set) $flags .= " -DED25519_NO_INLINE_ASM";
 
 	if ($function->value === "curve25519") {
 		runcmd("building ref10..", "{$compile} {$flags} curve25519-ref10.c -c -o curve25519-ref10.o");

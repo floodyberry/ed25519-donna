@@ -17,7 +17,7 @@ Required parameters:
 
 Optional parameters:
 
-*   `--with-sse2`
+* `--with-sse2`
 
     Also fuzz against ed25519-donna-sse2
 * `--with-openssl`
@@ -29,6 +29,10 @@ Optional parameters:
 * `--compiler=[gcc,clang,icc]`
 
     Default: gcc
+
+* `--no-asm`
+
+    Do not use platform specific assembler
 
 
 example:
