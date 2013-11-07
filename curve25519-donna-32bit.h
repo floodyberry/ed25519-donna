@@ -401,7 +401,7 @@ curve25519_square_times(bignum25519 out, const bignum25519 in, int count) {
 /* Take a little-endian, 32-byte number and expand it into polynomial form */
 static void
 curve25519_expand(bignum25519 out, const unsigned char in[32]) {
-	static const union { uint8_t b[2]; uint16_t s; } endian_check = {1,0};
+	static const union { uint8_t b[2]; uint16_t s; } endian_check = {{1,0}};
 	uint32_t x0,x1,x2,x3,x4,x5,x6,x7;
 
 	if (endian_check.s == 1) {
