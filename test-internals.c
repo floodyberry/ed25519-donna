@@ -28,7 +28,7 @@ test_adds() {
 	};
 #else
 	/* largest result for each limb from a mult or square: all elements except r1 reduced, r1 overflowed as far as possible */
-	static const bignum25519 MM16 max_bignum = {
+	static const bignum25519 ALIGN(16) max_bignum = {
 		0x3ffffff,0x2000300,0x3ffffff,0x1ffffff,0x3ffffff,
 		0x1ffffff,0x3ffffff,0x1ffffff,0x3ffffff,0x1ffffff
 	};
@@ -46,8 +46,8 @@ test_adds() {
 	};
 #endif
 	unsigned char result[32];
-	static const bignum25519 MM16 zero = {0};
-	bignum25519 MM16 a, b, c;
+	static const bignum25519 ALIGN(16) zero = {0};
+	bignum25519 ALIGN(16) a, b, c;
 	size_t i;
 
 	/* a = (max_bignum + max_bignum) */
@@ -100,7 +100,7 @@ test_subs() {
 	};
 #else
 	/* largest result for each limb from a mult or square: all elements except r1 reduced, r1 overflowed as far as possible */
-	static const bignum25519 MM16 max_bignum = {
+	static const bignum25519 ALIGN(16) max_bignum = {
 		0x3ffffff,0x2000300,0x3ffffff,0x1ffffff,0x3ffffff,
 		0x1ffffff,0x3ffffff,0x1ffffff,0x3ffffff,0x1ffffff
 	};
@@ -118,8 +118,8 @@ test_subs() {
 	};
 #endif
 	unsigned char result[32];
-	static const bignum25519 MM16 zero = {0};
-	bignum25519 MM16 a, b, c;
+	static const bignum25519 ALIGN(16) zero = {0};
+	bignum25519 ALIGN(16) a, b, c;
 	size_t i;
 
 	/* a = max_bignum - 0, which expands to 2p + max_bignum - 0 */

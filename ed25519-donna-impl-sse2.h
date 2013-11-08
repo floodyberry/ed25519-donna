@@ -4,7 +4,7 @@
 
 static void
 ge25519_p1p1_to_partial(ge25519 *r, const ge25519_p1p1 *p) {
-	packed64bignum25519 MM16 xz, tt, xzout;
+	packed64bignum25519 ALIGN(16) xz, tt, xzout;
 	curve25519_mul(r->y, p->y, p->z);
 	curve25519_tangle64(xz, p->x, p->z);
 	curve25519_tangleone64(tt, p->t);
@@ -14,7 +14,7 @@ ge25519_p1p1_to_partial(ge25519 *r, const ge25519_p1p1 *p) {
 
 static void 
 ge25519_p1p1_to_full(ge25519 *r, const ge25519_p1p1 *p) {
-	packed64bignum25519 MM16 zy, xt, xx, zz, ty;
+	packed64bignum25519 ALIGN(16) zy, xt, xx, zz, ty;
 	curve25519_tangle64(ty, p->t, p->y);
 	curve25519_tangleone64(xx, p->x);
 	curve25519_mul_packed64(xt, xx, ty);
@@ -38,9 +38,9 @@ ge25519_full_to_pniels(ge25519_pniels *p, const ge25519 *r) {
 
 static void
 ge25519_add_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519 *q) {
-	bignum25519 MM16 a,b,c,d;
-	packed32bignum25519 MM16 xx, yy, yypxx, yymxx, bd, ac, bdmac, bdpac;
-	packed64bignum25519 MM16 at, bu, atbu, ptz, qtz, cd;
+	bignum25519 ALIGN(16) a,b,c,d;
+	packed32bignum25519 ALIGN(16) xx, yy, yypxx, yymxx, bd, ac, bdmac, bdpac;
+	packed64bignum25519 ALIGN(16) at, bu, atbu, ptz, qtz, cd;
 
 	curve25519_tangle32(yy, p->y, q->y);
 	curve25519_tangle32(xx, p->x, q->x);
@@ -67,9 +67,9 @@ ge25519_add_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519 *q) {
 
 static void
 ge25519_double_p1p1(ge25519_p1p1 *r, const ge25519 *p) {
-	bignum25519 MM16 a,b,c,x;
-	packed64bignum25519 MM16 xy, zx, ab, cx;
-	packed32bignum25519 MM16 xc, yz, xt, yc, ac, bc;
+	bignum25519 ALIGN(16) a,b,c,x;
+	packed64bignum25519 ALIGN(16) xy, zx, ab, cx;
+	packed32bignum25519 ALIGN(16) xc, yz, xt, yc, ac, bc;
 
 	curve25519_add(x, p->x, p->y);
 	curve25519_tangle64(xy, p->x, p->y);
@@ -93,9 +93,9 @@ static void
 ge25519_nielsadd2_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519_niels *q, unsigned char signbit) {
 	const bignum25519 *qb = (const bignum25519 *)q;
 	bignum25519 *rb = (bignum25519 *)r;
-	bignum25519 MM16 a,b,c;
-	packed64bignum25519 MM16 ab, yx, aybx;
-	packed32bignum25519 MM16 bd, ac, bdac;
+	bignum25519 ALIGN(16) a,b,c;
+	packed64bignum25519 ALIGN(16) ab, yx, aybx;
+	packed32bignum25519 ALIGN(16) bd, ac, bdac;
 
 	curve25519_sub(a, p->y, p->x);
 	curve25519_add(b, p->y, p->x);
@@ -118,9 +118,9 @@ static void
 ge25519_pnielsadd_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519_pniels *q, unsigned char signbit) {
 	const bignum25519 *qb = (const bignum25519 *)q;
 	bignum25519 *rb = (bignum25519 *)r;
-	bignum25519 MM16 a,b,c;
-	packed64bignum25519 MM16 ab, yx, aybx, zt, zt2d, tc;
-	packed32bignum25519 MM16 bd, ac, bdac;
+	bignum25519 ALIGN(16) a,b,c;
+	packed64bignum25519 ALIGN(16) ab, yx, aybx, zt, zt2d, tc;
+	packed32bignum25519 ALIGN(16) bd, ac, bdac;
 
 	curve25519_sub(a, p->y, p->x);
 	curve25519_add(b, p->y, p->x);
@@ -144,30 +144,30 @@ ge25519_pnielsadd_p1p1(ge25519_p1p1 *r, const ge25519 *p, const ge25519_pniels *
 
 static void
 ge25519_double(ge25519 *r, const ge25519 *p) {
-	ge25519_p1p1 MM16 t;
+	ge25519_p1p1 ALIGN(16) t;
 	ge25519_double_p1p1(&t, p);
 	ge25519_p1p1_to_full(r, &t);
 }
 
 static void
 ge25519_add(ge25519 *r, const ge25519 *p, const ge25519 *q) {
-	ge25519_p1p1 MM16 t;
+	ge25519_p1p1 ALIGN(16) t;
 	ge25519_add_p1p1(&t, p, q);
 	ge25519_p1p1_to_full(r, &t);
 }
 
 static void
 ge25519_double_partial(ge25519 *r, const ge25519 *p) {
-	ge25519_p1p1 MM16 t;
+	ge25519_p1p1 ALIGN(16) t;
 	ge25519_double_p1p1(&t, p);
 	ge25519_p1p1_to_partial(r, &t);
 }
 
 static void
 ge25519_nielsadd2(ge25519 *r, const ge25519_niels *q) {
-	packed64bignum25519 MM16 ab, yx, aybx, eg, ff, hh, xz, ty;
-	packed32bignum25519 MM16 bd, ac, bdac;
-	bignum25519 MM16 a,b,c,d,e,f,g,h;
+	packed64bignum25519 ALIGN(16) ab, yx, aybx, eg, ff, hh, xz, ty;
+	packed32bignum25519 ALIGN(16) bd, ac, bdac;
+	bignum25519 ALIGN(16) a,b,c,d,e,f,g,h;
 
 	curve25519_sub(a, r->y, r->x);
 	curve25519_add(b, r->y, r->x);
@@ -194,8 +194,8 @@ ge25519_nielsadd2(ge25519 *r, const ge25519_niels *q) {
 
 static void
 ge25519_pnielsadd(ge25519_pniels *r, const ge25519 *p, const ge25519_pniels *q) {
-	ge25519_p1p1 MM16 t;
-	ge25519 MM16 f;
+	ge25519_p1p1 ALIGN(16) t;
+	ge25519 ALIGN(16) f;
 	ge25519_pnielsadd_p1p1(&t, p, q, 0);
 	ge25519_p1p1_to_full(&f, &t);
 	ge25519_full_to_pniels(r, &f);
@@ -207,7 +207,7 @@ ge25519_pnielsadd(ge25519_pniels *r, const ge25519 *p, const ge25519_pniels *q) 
 
 static void
 ge25519_pack(unsigned char r[32], const ge25519 *p) {
-	bignum25519 MM16 tx, ty, zi;
+	bignum25519 ALIGN(16) tx, ty, zi;
 	unsigned char parity[32];
 	curve25519_recip(zi, p->z);
 	curve25519_mul(tx, p->x, zi);
@@ -220,11 +220,11 @@ ge25519_pack(unsigned char r[32], const ge25519 *p) {
 
 static int
 ge25519_unpack_negative_vartime(ge25519 *r, const unsigned char p[32]) {
-	static const bignum25519 MM16 one = {1};
+	static const bignum25519 ALIGN(16) one = {1};
 	static const unsigned char zero[32] = {0};
 	unsigned char parity = p[31] >> 7;
 	unsigned char check[32];
-	bignum25519 MM16 t, root, num, den, d3;
+	bignum25519 ALIGN(16) t, root, num, den, d3;
 
 	curve25519_expand(r->y, p);
 	curve25519_copy(r->z, one);
@@ -283,9 +283,9 @@ ge25519_unpack_negative_vartime(ge25519 *r, const unsigned char p[32]) {
 static void
 ge25519_double_scalarmult_vartime(ge25519 *r, const ge25519 *p1, const bignum256modm s1, const bignum256modm s2) {
 	signed char slide1[256], slide2[256];
-	ge25519_pniels MM16 pre1[S1_TABLE_SIZE];
-	ge25519 MM16 d1;
-	ge25519_p1p1 MM16 t;
+	ge25519_pniels ALIGN(16) pre1[S1_TABLE_SIZE];
+	ge25519 ALIGN(16) d1;
+	ge25519_p1p1 ALIGN(16) t;
 	int32_t i;
 
 	contract256_slidingwindow_modm(slide1, s1, S1_SWINDOWSIZE);
@@ -331,14 +331,14 @@ ge25519_windowb_equal(uint32_t b, uint32_t c) {
 
 static void
 ge25519_scalarmult_base_choose_niels(ge25519_niels *t, const uint8_t table[256][96], uint32_t pos, signed char b) {
-	bignum25519 MM16 neg;
+	bignum25519 ALIGN(16) neg;
 	uint32_t sign = (uint32_t)((unsigned char)b >> 7);
 	uint32_t mask = ~(sign - 1);
 	uint32_t u = (b + mask) ^ mask;
 	uint32_t i;
 
 	/* ysubx, xaddy, t2d in packed form. initialize to ysubx = 1, xaddy = 1, t2d = 0 */
-	uint8_t MM16 packed[96] = {0};
+	uint8_t ALIGN(16) packed[96] = {0};
 	packed[0] = 1;
 	packed[32] = 1;
 
@@ -362,7 +362,7 @@ static void
 ge25519_scalarmult_base_niels(ge25519 *r, const uint8_t table[256][96], const bignum256modm s) {
 	signed char b[64];
 	uint32_t i;
-	ge25519_niels MM16 t;
+	ge25519_niels ALIGN(16) t;
 
 	contract256_window4_modm(b, s);
 

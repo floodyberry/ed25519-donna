@@ -11,14 +11,14 @@
 	#endif
 	#define DONNA_INLINE __forceinline
 	#define DONNA_NOINLINE __declspec(noinline)
-	#define MM16 __declspec(align(16))
+	#define ALIGN(x) __declspec(align(x))
 	#define ROTL32(a,b) _rotl(a,b)
 	#define ROTR32(a,b) _rotr(a,b)
 #else
 	#include <sys/param.h>
 	#define DONNA_INLINE inline __attribute__((always_inline))
 	#define DONNA_NOINLINE __attribute__((noinline))
-	#define MM16 __attribute__((aligned(16)))
+	#define ALIGN(x) __attribute__((aligned(x)))
 	#define ROTL32(a,b) (((a) << (b)) | ((a) >> (32 - b)))
 	#define ROTR32(a,b) (((a) >> (b)) | ((a) << (32 - b)))
 #endif
