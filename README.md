@@ -19,7 +19,10 @@ Batch verfication time (in parentheses) is the average time per 1 verification i
 
 Note that SSE2 performance may be less impressive on AMD & older CPUs with slower SSE ops!
 
-##### E5200 @ 2.5ghz
+Visual Studio performance for `ge25519_scalarmult_base_niels` will lag behind a bit until optimized assembler versions of `ge25519_scalarmult_base_choose_niels`
+are made.
+
+##### E5200 @ 2.5ghz, march=core2
 
 <table>
 <thead><tr><th>Implementation</th><th>Sign</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
@@ -27,13 +30,13 @@ Note that SSE2 performance may be less impressive on AMD & older CPUs with slowe
 <tr><td>ed25519-donna 64bit     </td><td></td><td>100k</td><td>110k</td><td>137k</td><td></td><td>327k (144k) </td><td>342k (163k) </td><td>422k (194k) </td></tr>
 <tr><td>amd64-64-24k            </td><td></td><td>102k</td><td>    </td><td>    </td><td></td><td>355k (158k) </td><td>            </td><td>            </td></tr>
 <tr><td>amd64-51-32k            </td><td></td><td>116k</td><td>    </td><td>    </td><td></td><td>380k (175k) </td><td>            </td><td>            </td></tr>
-<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>122k</td><td>114k</td><td>128k</td><td></td><td>372k (172k) </td><td>352k (173k) </td><td>412k (195k) </td></tr>
-<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>179k</td><td>155k</td><td>184k</td><td></td><td>395k (204k) </td><td>378k (197k) </td><td>490k (234k) </td></tr>
+<tr><td>ed25519-donna-sse2 64bit</td><td></td><td>108k</td><td>111k</td><td>116k</td><td></td><td>353k (155k) </td><td>345k (154k) </td><td>360k (161k) </td></tr>
+<tr><td>ed25519-donna-sse2 32bit</td><td></td><td>147k</td><td>147k</td><td>156k</td><td></td><td>380k (178k) </td><td>381k (173k) </td><td>430k (192k) </td></tr>
 <tr><td>ed25519-donna 32bit     </td><td></td><td>597k</td><td>335k</td><td>380k</td><td></td><td>1693k (720k)</td><td>1052k (453k)</td><td>1141k (493k)</td></tr>
 </tbody>
 </table>
 
-##### E3-1270 @ 3.4ghz
+##### E3-1270 @ 3.4ghz, march=corei7-avx
 
 <table>
 <thead><tr><th>Implementation</th><th>Sign</th><th>gcc</th><th>icc</th><th>clang</th><th>Verify</th><th>gcc</th><th>icc</th><th>clang</th></tr></thead>
@@ -41,6 +44,8 @@ Note that SSE2 performance may be less impressive on AMD & older CPUs with slowe
 <tr><td>amd64-64-24k            </td><td></td><td> 68k</td><td>    </td><td>    </td><td></td><td>225k (104k) </td><td>            </td><td>            </td></tr>
 <tr><td>ed25519-donna 64bit     </td><td></td><td> 71k</td><td> 75k</td><td> 90k</td><td></td><td>226k (105k) </td><td>226k (112k) </td><td>277k (125k) </td></tr>
 <tr><td>amd64-51-32k            </td><td></td><td> 72k</td><td>    </td><td>    </td><td></td><td>218k (107k) </td><td>            </td><td>            </td></tr>
+<tr><td>ed25519-donna-sse2 64bit</td><td></td><td> 79k</td><td> 82k</td><td> 92k</td><td></td><td>252k (122k) </td><td>259k (124k) </td><td>282k (131k) </td></tr>
+<tr><td>ed25519-donna-sse2 32bit</td><td></td><td> 94k</td><td> 95k</td><td>103k</td><td></td><td>296k (146k) </td><td>294k (137k) </td><td>306k (147k) </td></tr>
 <tr><td>ed25519-donna 32bit     </td><td></td><td>525k</td><td>299k</td><td>316k</td><td></td><td>1502k (645k)</td><td>959k (418k) </td><td>954k (416k) </td></tr>
 </tbody>
 </table>
@@ -77,6 +82,12 @@ custom hash implementation in ed25519-randombytes-custom.h. The random function 
 
 Use `-DED25519_TEST` when compiling `ed25519.c` to use a deterministically seeded, non-thread safe CSPRNG 
 variant of Bob Jenkins [ISAAC](http://en.wikipedia.org/wiki/ISAAC_%28cipher%29)
+
+##### Minor options
+
+Use `-DED25519_INLINE_ASM` to disable the use of custom assembler routines and instead rely on portable C.
+
+Use `-DED25519_FORCE_32BIT` to force the use of 32 bit routines even when compiling for 64 bit.
 
 ##### 32-bit
 
@@ -165,7 +176,7 @@ Building `ed25519.c` with `-DED25519_TEST` and linking with `test.c` will run ba
 and benchmark each function. `test-batch.c` has been incorporated in to `test.c`.
 
 `test-internals.c` is standalone and built the same way as `ed25519.c`. It tests the math primitives
-with extreme values to ensure they function correctly. SSE2 not supported (yet).
+with extreme values to ensure they function correctly. SSE2 is now supported.
 
 #### Papers
 
