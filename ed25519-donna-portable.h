@@ -9,6 +9,8 @@
 		#undef mul32x32_64		
 		#define mul32x32_64(a,b) __emulu(a,b)
 	#endif
+	#undef inline
+	#define inline __forceinline
 	#define DONNA_INLINE __forceinline
 	#define DONNA_NOINLINE __declspec(noinline)
 	#define ALIGN(x) __declspec(align(x))
