@@ -29,8 +29,8 @@ are made.
 <tbody>
 <tr><td>ed25519-donna 64bit     </td><td></td><td>100k</td><td>110k</td><td>137k</td><td></td><td>327k (144k) </td><td>342k (163k) </td><td>422k (194k) </td></tr>
 <tr><td>amd64-64-24k            </td><td></td><td>102k</td><td>    </td><td>    </td><td></td><td>355k (158k) </td><td>            </td><td>            </td></tr>
-<tr><td>amd64-51-32k            </td><td></td><td>116k</td><td>    </td><td>    </td><td></td><td>380k (175k) </td><td>            </td><td>            </td></tr>
 <tr><td>ed25519-donna-sse2 64bit</td><td></td><td>108k</td><td>111k</td><td>116k</td><td></td><td>353k (155k) </td><td>345k (154k) </td><td>360k (161k) </td></tr>
+<tr><td>amd64-51-32k            </td><td></td><td>116k</td><td>    </td><td>    </td><td></td><td>380k (175k) </td><td>            </td><td>            </td></tr>
 <tr><td>ed25519-donna-sse2 32bit</td><td></td><td>147k</td><td>147k</td><td>156k</td><td></td><td>380k (178k) </td><td>381k (173k) </td><td>430k (192k) </td></tr>
 <tr><td>ed25519-donna 32bit     </td><td></td><td>597k</td><td>335k</td><td>380k</td><td></td><td>1693k (720k)</td><td>1052k (453k)</td><td>1141k (493k)</td></tr>
 </tbody>
