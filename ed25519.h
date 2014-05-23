@@ -24,7 +24,7 @@ void ed25519_randombytes_unsafe(void *out, size_t count);
 void curved25519_scalarmult_basepoint(curved25519_key pk, const curved25519_key e);
 
 #if defined(__cplusplus)
-};
+}
 #endif
 
 #endif // ED25519_H
