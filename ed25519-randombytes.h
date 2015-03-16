@@ -74,7 +74,7 @@ ED25519_FN(ed25519_randombytes_unsafe) (void *p, size_t len) {
 
 	isaacp_random(&rng, p, len);
 }
-#elif defined(ED25519_CUSTOMRNG)
+#elif defined(ED25519_CUSTOMRANDOM)
 
 #include "ed25519-randombytes-custom.h"
 
