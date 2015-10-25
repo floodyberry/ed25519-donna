@@ -85,7 +85,7 @@ variant of Bob Jenkins [ISAAC](http://en.wikipedia.org/wiki/ISAAC_%28cipher%29)
 
 ##### Minor options
 
-Use `-DED25519_INLINE_ASM` to disable the use of custom assembler routines and instead rely on portable C.
+Use `-DED25519_NO_INLINE_ASM` to disable the use of custom assembler routines and instead rely on portable C.
 
 Use `-DED25519_FORCE_32BIT` to force the use of 32 bit routines even when compiling for 64 bit.
 
