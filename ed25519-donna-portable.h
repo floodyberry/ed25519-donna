@@ -17,7 +17,9 @@
 	#define ROTL32(a,b) _rotl(a,b)
 	#define ROTR32(a,b) _rotr(a,b)
 #else
-	#include <sys/param.h>
+	#ifndef SGX_ENCLAVE_ENV
+		#include <sys/param.h>
+	#endif
 	#define DONNA_INLINE inline __attribute__((always_inline))
 	#define DONNA_NOINLINE __attribute__((noinline))
 	#define ALIGN(x) __attribute__((aligned(x)))

@@ -104,6 +104,12 @@ Use `-DED25519_FORCE_32BIT` to force the use of 32 bit routines even when compil
 
 clang and icc are also supported
 
+##### SGX
+
+Intel's SGX SDK does not include a `param.h` header.  To avoid including this
+header define `SGX_ENCLAVE_ENV`:
+
+	gcc ed25519.c -O3 -c -DSGX_ENCLAVE_ENV
 
 #### Usage
 
