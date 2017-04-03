@@ -4,7 +4,9 @@
 #elif defined(sun) || defined(__sun) || defined(__SVR4) || defined(__svr4__)
 	#define OS_SOLARIS
 #else
-	#include <sys/param.h> /* need this to define BSD */
+	#ifndef SGX_ENCLAVE_ENV
+		#include <sys/param.h> /* need this to define BSD */
+	#endif
 	#define OS_NIX
 	#if defined(__linux__)
 		#define OS_LINUX
