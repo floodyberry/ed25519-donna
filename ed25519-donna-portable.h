@@ -5,7 +5,7 @@
 /* platform */
 #if defined(COMPILER_MSVC)
 	#include <intrin.h>
-	#if !defined(_DEBUG)
+	#if !defined(_DEBUG) && (defined(CPU_X86) || defined(CPU_X86_64))
 		#undef mul32x32_64		
 		#define mul32x32_64(a,b) __emulu(a,b)
 	#endif
@@ -35,9 +35,16 @@
 		typedef struct uint128_t {
 			uint64_t lo, hi;
 		} uint128_t;
-		#define mul64x64_128(out,a,b) out.lo = _umul128(a,b,&out.hi);
-		#define shr128_pair(out,hi,lo,shift) out = __shiftright128(lo, hi, shift);
-		#define shl128_pair(out,hi,lo,shift) out = __shiftleft128(lo, hi, shift);
+		#if defined(CPU_X86_64)
+			#define mul64x64_128(out,a,b) out.lo = _umul128(a,b,&out.hi);
+			#define shr128_pair(out,hi,lo,shift) out = __shiftright128(lo, hi, shift);
+			#define shl128_pair(out, hi, lo, shift) out = __shiftleft128(lo, hi, shift);
+		#else
+			#define mul64x64_128(out,a,b) out.lo = ((uint64_t)(a))*(b); out.hi = __umulh(a, b);
+			// note: these are special purpose functions where shift is expected to be < 64 and != 0
+			#define shr128_pair(out,hi,lo,shift) out = ((lo) >> shift) | ((hi) << (64 - shift));
+			#define shl128_pair(out,hi,lo,shift) out = (lo) << shift;
+		#endif
 		#define shr128(out,in,shift) shr128_pair(out, in.hi, in.lo, shift)
 		#define shl128(out,in,shift) shl128_pair(out, in.hi, in.lo, shift)
 		#define add128(a,b) { uint64_t p = a.lo; a.lo += b.lo; a.hi += b.hi + (a.lo < p); }

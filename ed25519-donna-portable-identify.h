@@ -55,6 +55,8 @@
 	#define CPU_X86 300
 #elif defined(__ia64__) || defined(_IA64) || defined(__IA64__) || defined(_M_IA64) || defined(__ia64)
 	#define CPU_IA64
+#elif defined(_M_ARM64)
+	#define CPU_ARM64
 #endif
 
 #if defined(__sparc__) || defined(__sparc) || defined(__sparcv9)
@@ -84,7 +86,7 @@
 #endif
 
 /* 64 bit cpu */
-#if defined(CPU_X86_64) || defined(CPU_IA64) || defined(CPU_SPARC64) || defined(__64BIT__) || defined(__LP64__) || defined(_LP64) || (defined(_MIPS_SZLONG) && (_MIPS_SZLONG == 64))
+#if defined(CPU_X86_64) || defined(CPU_IA64) || defined(CPU_SPARC64) || defined(__64BIT__) || defined(__LP64__) || defined(_LP64) || (defined(_MIPS_SZLONG) && (_MIPS_SZLONG == 64)) || defined(CPU_ARM64)
 	#define CPU_64BITS
 #endif
 
